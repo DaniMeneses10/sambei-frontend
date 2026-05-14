@@ -1,0 +1,172 @@
+<div class="min-h-screen bg-surface-900 flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-primary-500">Sambei</h1>
+        <p class="text-slate-400 mt-2">Tu plataforma de inversión inteligente</p>
+      </div>
+
+      <!-- Card -->
+      <app-card>
+
+        <h2 class="text-2xl font-bold text-white mb-6">Iniciar sesión</h2>
+
+        <!-- Error general -->
+        @if (error()) {
+          <div class="bg-danger/10 border border-danger text-danger rounded-xl p-3 mb-4 text-sm">
+            {{ error() }}
+          </div>
+        }
+
+        <!-- Formulario -->
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+
+          <app-input
+            label="Email"
+            type="email"
+            placeholder="tu@email.com"
+            formControlName="email"
+            [error]="form.controls.email.touched && form.controls.email.invalid ? 'Email inválido' : ''"/>
+
+          <app-input
+            label="Contraseña"
+            type="password"
+            placeholder="••••••••"
+            formControlName="password"
+            [error]="form.controls.password.touched && form.controls.password.invalid ? 'Mínimo 6 caracteres' : ''"/>
+
+          <!-- Olvidé mi contraseña -->
+          <div class="text-right">
+            <a routerLink="/auth/forgot-password" class="text-sm text-primary-500 hover:text-primary-400">
+              ¿Olvidaste tu contraseña?
+            </a>
+          </div>
+
+          <app-button type="submit" [loading]="loading()">
+            Iniciar sesión
+          </app-button>
+
+        </form>
+
+        <!-- Link a Register -->
+        <p class="text-center text-slate-400 text-sm mt-6">
+          ¿No tienes cuenta?
+          <a routerLink="/auth/register" class="text-primary-500 hover:text-primary-400 font-medium">
+            Regístrate
+          </a>
+        </p>
+
+      </app-card>
+    </div>
+  </div>
+
+   El TypeScript — login.component.ts
+
+  imports en el decorador
+
+  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, InputComponent]
+  Como el componente es standalone (sin NgModule), necesita declarar explícitamente todo lo que usa. Es como los using en C# — si no lo importas, Angular no sabe que
+  existe.
+
+  - ReactiveFormsModule — habilita [formGroup] y formControlName en el HTML
+  - RouterLink — habilita el atributo routerLink en los <a>
+  - Los tres componentes propios que creamos
+
+  ---
+  FormBuilder
+
+  private readonly fb = inject(FormBuilder);
+
+  form = this.fb.group({
+    email:    ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]]
+  });
+
+  FormBuilder es un helper de Angular para crear formularios. fb.group() crea un FormGroup — un objeto que agrupa campos relacionados.
+
+  Cada campo se define como:
+  nombreCampo: [valorInicial, [validadores]]
+
+  Los validadores corren automáticamente cada vez que el usuario escribe. Si el email no es válido, form.controls.email.invalid es true inmediatamente.
+
+  ---
+  Signals para estado local
+
+  loading = signal(false);
+  error   = signal('');
+
+  Dos signals simples:
+  - loading — controla el spinner del botón mientras espera el backend
+  - error — muestra el mensaje de error si el login falla
+
+  ---
+  onSubmit()
+
+  onSubmit() {
+    if (this.form.invalid) return;      // 1. Valida antes de llamar al backend
+
+    this.loading.set(true);             // 2. Activa el spinner
+    this.error.set('');                 // 3. Limpia errores anteriores
+
+    const { email, password } = this.form.value;
+
+    this.authService.login({ email: email!, password: password! })
+      .subscribe({
+        next: (response) => {           // 4. Si el backend responde OK
+          this.authService.saveSession(response);
+          this.router.navigate(['/dashboard']);
+        },
+        error: () => {                  // 5. Si el backend responde con error
+          this.error.set('Email o contraseña incorrectos');
+          this.loading.set(false);
+        }
+      });
+  }
+
+  El ! después de email y password es un non-null assertion de TypeScript — le dices al compilador "sé que este valor no es null porque ya validé el formulario
+  arriba".
+
+  .subscribe() es cómo consumes un Observable en Angular. Es similar a await en C# — esperas la respuesta y defines qué hacer en cada caso.
+
+  ---
+  El HTML
+
+  El layout responsive
+
+  <div class="min-h-screen bg-surface-900 flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+  - min-h-screen — ocupa al menos toda la altura de la pantalla
+  - flex items-center justify-center — centra el contenido vertical y horizontalmente
+  - max-w-md — en desktop limita el ancho a 448px. En móvil w-full lo hace ancho completo
+
+  ---
+  El error general
+
+  @if (error()) {
+    <div class="bg-danger/10 border border-danger text-danger ...">
+      {{ error() }}
+    </div>
+  }
+  bg-danger/10 es una característica de Tailwind — el /10 significa 10% de opacidad. Así el fondo es rojo muy suave y el borde y texto son rojo sólido.
+
+  ---
+  [formGroup] y formControlName
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <app-input formControlName="email" .../>
+    <app-input formControlName="password" .../>
+  </form>
+  - [formGroup]="form" — conecta el <form> HTML con el FormGroup del TypeScript
+  - formControlName="email" — conecta el InputComponent con el campo email del formulario
+  - (ngSubmit) — llama a onSubmit() cuando el usuario presiona Enter o el botón submit
+
+  ---
+  Errores inline
+
+  [error]="form.controls.email.touched && form.controls.email.invalid ? 'Email inválido' : ''"
+  - touched — el usuario ya interactuó con ese campo (lo tocó y lo dejó)
+  - invalid — el campo no pasa los validadores
+  - Solo mostramos el error si ambos son true — no queremos mostrar errores antes de que el usuario intente llenar el campo
+
+  ---
