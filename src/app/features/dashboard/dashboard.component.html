@@ -1,0 +1,258 @@
+<div class="min-h-screen bg-surface-900">
+
+      <!-- Navbar -->
+      <nav class="bg-surface-800 border-b border-slate-700 px-4 lg:px-6 py-4 flex items-center justify-between">
+          <div>
+              <span class="text-xl font-bold text-primary-500">Sambei</span>
+              <span class="text-slate-500 text-xs ml-2 hidden sm:inline">Smart Analytics for Markets, Bitcoin, ETFs & Investments</span>
+          </div>
+          <div class="flex items-center gap-3">
+              <span class="text-slate-400 text-sm hidden md:block">{{ authService.currentUser()?.email }}</span>
+              <button
+                  (click)="logout()"
+                  class="text-sm text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded-lg transition-all">
+                  Salir
+              </button>
+          </div>
+      </nav>
+
+      <!-- Contenido principal -->
+      <main class="p-4 lg:p-6">
+
+          <!-- Resumen portfolio -->
+          <div class="mb-6 flex flex-col sm:flex-row sm:items-stretch gap-4">
+
+              <!-- Banner ganando / perdiendo -->
+              <div
+                  [style.background-color]="isWinning() ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)'"
+                  [style.border-color]="isWinning() ? '#22c55e' : '#ef4444'"
+                  class="border rounded-2xl px-5 py-4 flex items-center gap-4 flex-1">
+                  <span class="text-4xl">{{ isWinning() ? '📈' : '📉' }}</span>
+                  <div>
+                      <p [style.color]="isWinning() ? '#22c55e' : '#ef4444'"
+                         class="text-sm font-semibold uppercase tracking-wide mb-0.5">
+                          {{ isWinning() ? '¡Estás ganando!' : 'Estás perdiendo' }}
+                      </p>
+                      <p class="text-white text-2xl font-bold leading-tight">
+                          {{ formatUSD(totalProfit()) }}
+                          <span class="text-base font-semibold ml-1"
+                              [style.color]="isWinning() ? '#22c55e' : '#ef4444'">
+                              ({{ formatPercent(totalProfitPercent()) }})
+                          </span>
+                      </p>
+                      <p class="text-slate-500 text-xs mt-1">
+                          Invertiste {{ formatUSD(totalValue() - totalProfit()) }} · Valor actual {{ formatUSD(totalValue()) }}
+                      </p>
+                  </div>
+              </div>
+
+              <!-- Botón nueva posición -->
+              <button class="text-primary-500 text-sm hover:text-primary-400 border border-primary-500/30 hover:border-primary-500 px-5 rounded-2xl transition-all whitespace-nowrap">
+                  + Nueva posición
+              </button>
+
+          </div>
+
+          <!-- Grid principal -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+              <!-- Columna izquierda: Gráfica + Posiciones -->
+              <div class="lg:col-span-2 flex flex-col gap-6">
+
+                  <!-- Card gráfica -->
+                  <div class="bg-surface-800 rounded-2xl p-4">
+
+                      <!-- Filtros de assets -->
+                      <div class="flex flex-wrap gap-2 mb-3">
+                          @for (pos of positions; track pos.symbol) {
+                              <button
+                                  (click)="toggleAsset(pos.symbol)"
+                                  [style.border-color]="isAssetActive(pos.symbol) ? assetColors[pos.symbol] : '#334155'"
+                                  [style.color]="isAssetActive(pos.symbol) ? assetColors[pos.symbol] : '#475569'"
+                                  class="px-3 py-1 rounded-full border text-xs font-semibold transition-all">
+                                  ● {{ pos.symbol }}
+                              </button>
+                          }
+                          <button
+                              (click)="showBuyPoints.set(!showBuyPoints())"
+                              [ngClass]="showBuyPoints() ? 'border-slate-400 text-slate-300' : 'border-slate-700 text-slate-600'"
+                              class="px-3 py-1 rounded-full border text-xs transition-all">
+                              ▲ Mis compras
+                          </button>
+                          <button
+                              (click)="showCongressional.set(!showCongressional())"
+                              [ngClass]="showCongressional() ? 'border-warning text-warning' : 'border-slate-700 text-slate-600'"
+                              class="px-3 py-1 rounded-full border text-xs transition-all">
+                              ★ Congresistas
+                          </button>
+                      </div>
+
+                      <!-- Selector de período -->
+                      <div class="flex gap-1 mb-4">
+                          @for (p of periods; track p) {
+                              <button
+                                  (click)="selectedPeriod.set(p)"
+                                  [ngClass]="selectedPeriod() === p
+                                      ? 'bg-primary-500 text-white'
+                                      : 'text-slate-500 hover:text-slate-300'"
+                                  class="px-3 py-1 rounded-lg text-xs font-medium transition-all">
+                                  {{ p }}
+                              </button>
+                          }
+                      </div>
+
+                      <!-- Gráfica -->
+                      <apx-chart
+                          [series]="chartSeries()"
+                          [chart]="chartConfig.chart"
+                          [stroke]="chartConfig.stroke"
+                          [xaxis]="chartConfig.xaxis"
+                          [yaxis]="chartConfig.yaxis"
+                          [grid]="chartConfig.grid"
+                          [tooltip]="chartConfig.tooltip"
+                          [legend]="chartConfig.legend"
+                          [theme]="chartConfig.theme"
+                          [colors]="chartColors()"
+                          [annotations]="chartAnnotations()" />
+
+                      <!-- Leyenda manual -->
+                      <div class="flex flex-wrap gap-4 mt-2 px-2">
+                          @for (pos of positions; track pos.symbol) {
+                              @if (isAssetActive(pos.symbol)) {
+                                  <div class="flex items-center gap-1.5">
+                                      <div class="w-3 h-0.5 rounded" [style.background-color]="assetColors[pos.symbol]"></div>
+                                      <span class="text-slate-400 text-xs">{{ pos.symbol }}</span>
+                                      <span class="text-xs font-semibold"
+                                          [style.color]="pos.netProfitPercent >= 0 ? '#22c55e' : '#ef4444'">
+                                          {{ formatPercent(pos.netProfitPercent) }}
+                                      </span>
+                                  </div>
+                              }
+                          }
+                      </div>
+                  </div>
+
+                  <!-- Tabla de posiciones -->
+                  <div class="bg-surface-800 rounded-2xl p-4">
+                      <div class="mb-4">
+                          <h2 class="text-white font-semibold">Mis posiciones</h2>
+                      </div>
+
+                      <!-- Desktop: tabla -->
+                      <div class="hidden md:block overflow-x-auto">
+                          <table class="w-full text-sm">
+                              <thead>
+                                  <tr class="text-slate-500 text-xs border-b border-slate-700">
+                                      <th class="text-left pb-2">ETF</th>
+                                      <th class="text-left pb-2">Broker</th>
+                                      <th class="text-right pb-2">Precio compra</th>
+                                      <th class="text-right pb-2">Precio actual</th>
+                                      <th class="text-right pb-2">Cantidad</th>
+                                      <th class="text-right pb-2">Valor</th>
+                                      <th class="text-right pb-2">Ganancia / Pérdida</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  @for (pos of positions; track pos.symbol) {
+                                      <tr class="border-b border-slate-700/50 hover:bg-white/5 transition-all">
+                                          <td class="py-3">
+                                              <div class="flex items-center gap-2">
+                                                  <div class="w-2 h-2 rounded-full" [style.background-color]="assetColors[pos.symbol]"></div>
+                                                  <div>
+                                                      <div class="text-white font-medium">{{ pos.symbol }}</div>
+                                                      <div class="text-slate-500 text-xs">{{ pos.name }}</div>
+                                                  </div>
+                                              </div>
+                                          </td>
+                                          <td class="py-3 text-slate-400">{{ pos.broker }}</td>
+                                          <td class="py-3 text-right text-slate-400">{{ formatUSD(pos.openPrice) }}</td>
+                                          <td class="py-3 text-right text-white">{{ formatUSD(pos.currentPrice) }}</td>
+                                          <td class="py-3 text-right text-slate-400">{{ pos.volume }}</td>
+                                          <td class="py-3 text-right text-white font-medium">{{ formatUSD(pos.value) }}</td>
+                                          <td class="py-3 text-right">
+                                              <div [style.color]="pos.netProfit >= 0 ? '#22c55e' : '#ef4444'" class="font-semibold">
+                                                  {{ formatPercent(pos.netProfitPercent) }}
+                                              </div>
+                                              <div [style.color]="pos.netProfit >= 0 ? '#22c55e' : '#ef4444'" class="text-xs">
+                                                  {{ formatUSD(pos.netProfit) }}
+                                              </div>
+                                          </td>
+                                      </tr>
+                                  }
+                              </tbody>
+                          </table>
+                      </div>
+
+                      <!-- Mobile: cards -->
+                      <div class="md:hidden flex flex-col gap-3">
+                          @for (pos of positions; track pos.symbol) {
+                              <div class="border border-slate-700 rounded-xl p-3">
+                                  <div class="flex items-center justify-between mb-2">
+                                      <div class="flex items-center gap-2">
+                                          <div class="w-2 h-2 rounded-full" [style.background-color]="assetColors[pos.symbol]"></div>
+                                          <span class="text-white font-semibold">{{ pos.symbol }}</span>
+                                          <span class="text-slate-500 text-xs">{{ pos.broker }}</span>
+                                      </div>
+                                      <span [style.color]="pos.netProfit >= 0 ? '#22c55e' : '#ef4444'" class="font-bold">
+                                          {{ formatPercent(pos.netProfitPercent) }}
+                                      </span>
+                                  </div>
+                                  <div class="grid grid-cols-3 gap-2 text-xs">
+                                      <div>
+                                          <div class="text-slate-500">Compra</div>
+                                          <div class="text-slate-300">{{ formatUSD(pos.openPrice) }}</div>
+                                      </div>
+                                      <div>
+                                          <div class="text-slate-500">Actual</div>
+                                          <div class="text-white">{{ formatUSD(pos.currentPrice) }}</div>
+                                      </div>
+                                      <div>
+                                          <div class="text-slate-500">Valor</div>
+                                          <div class="text-white">{{ formatUSD(pos.value) }}</div>
+                                      </div>
+                                  </div>
+                              </div>
+                          }
+                      </div>
+                  </div>
+              </div>
+
+              <!-- Columna derecha: AI Advisor -->
+              <div class="lg:col-span-1">
+                  <div class="bg-surface-800 rounded-2xl p-4 lg:sticky lg:top-6">
+                      <h2 class="text-white font-semibold mb-4 flex items-center gap-2">
+                          <span>🤖</span> AI Advisor
+                          <span class="text-xs text-slate-500 font-normal ml-1">— basado en datos mock</span>
+                      </h2>
+
+                      <div class="flex flex-col gap-4">
+                          @for (aiSignal of aiSignals; track aiSignal.symbol) {
+                              <div class="border border-slate-700 rounded-xl p-3 hover:border-slate-600 transition-all">
+                                  <div class="flex items-center justify-between mb-2">
+                                      <div class="flex items-center gap-2">
+                                          <div class="w-2 h-2 rounded-full" [style.background-color]="assetColors[aiSignal.symbol]"></div>
+                                          <span class="text-white font-semibold text-sm">{{ aiSignal.symbol }}</span>
+                                      </div>
+                                      <span
+                                          [style.color]="signalColor(aiSignal.signal)"
+                                          [style.border-color]="signalColor(aiSignal.signal)"
+                                          class="text-xs font-bold border rounded-full px-2 py-0.5">
+                                          {{ signalIcon(aiSignal.signal) }} {{ signalLabel(aiSignal.signal) }}
+                                      </span>
+                                  </div>
+                                  <p class="text-slate-300 text-xs font-medium mb-1">{{ aiSignal.summary }}</p>
+                                  <p class="text-slate-500 text-xs leading-relaxed">{{ aiSignal.detail }}</p>
+                              </div>
+                          }
+                      </div>
+
+                      <button class="mt-4 w-full text-center text-primary-500 hover:text-primary-400 text-sm border border-primary-500/30
+  hover:border-primary-500 rounded-xl py-2 transition-all">
+                          Ver análisis completo →
+                      </button>
+                  </div>
+              </div>
+
+          </div>
+      </main>
+  </div>
