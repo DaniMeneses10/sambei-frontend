@@ -1,0 +1,66 @@
+<div class="min-h-screen bg-surface-900 flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+              <h1 class="text-4xl font-bold text-primary-500">Sambei</h1>
+              <p class="text-slate-400 mt-2">Tu plataforma de inversión inteligente</p>
+        </div>
+
+        <app-card>
+            <h2 class="text-2xl font-semibold mb-6 text-center">Crear cuenta</h2>
+
+            @if(error()){
+                <div class="bg-danger/10 border border-danger text-danger rounded-xl p-3 mb-4 text-sm">
+                      {{ error() }}
+                </div>
+            }
+
+            <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+                <app-input
+                      label="Nombre"
+                      type="text"
+                      placeholder="Juan"
+                      formControlName="firstName"
+                      [error]="form.controls.firstName.touched && form.controls.firstName.invalid ? 'Mínimo 2 caracteres' : ''"/>
+
+                                  <app-input
+                      label="Apellido"
+                      type="text"
+                      placeholder="Pérez"
+                      formControlName="lastName"
+                      [error]="form.controls.lastName.touched && form.controls.lastName.invalid ? 'Mínimo 2 caracteres' : ''"/>
+
+                <app-input
+                    label="Email"
+                    type="email"
+                    placeholder="tu@email.com"
+                    formControlName="email"
+                    [error]="form.controls.email.touched && form.controls.email.invalid ? 'Email inválido' : ''"/>
+
+                <app-input
+                    label="Contraseña"
+                    type="password"
+                    placeholder="••••••••"
+                    formControlName="password"
+                    [error]="form.controls.password.touched && form.controls.password.invalid ? 'Mínimo 6 caracteres' : ''"/>
+
+                <app-input
+                    label="Confirmar contraseña"
+                    type="password"
+                    placeholder="••••••••"
+                    formControlName="confirmPassword"
+                    [error]="form.controls.confirmPassword.touched && form.hasError('passwordsMismatch') ? 'Las contraseñas no coinciden' : ''"/>
+
+                <app-button type="submit" [loading]="loading()">
+                    Crear cuenta
+                </app-button>                
+            </form>
+            
+            <p class="text-center text-slate-400 text-sm mt-6">
+                ¿Ya tenés cuenta?
+                <a routerLink="/auth/login" class="text-primary-500 hover:text-primary-400 font-medium">
+                    Iniciá sesión
+                </a>
+            </p>
+        </app-card>
+    </div>
+</div>

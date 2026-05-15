@@ -8,12 +8,12 @@ import { AuthResponse, ForgotPasswordRequest, LoginRequest, RegisterRequest, Res
 export class AuthService {
     private readonly http = inject(HttpClient); //Esta es la forma moderna de inyección de dependencias en Angular 17+. En lugar de:
     private readonly router = inject(Router);
-    private readonly apiUrl = 'http://localhost:5246/api/auth';
+    private readonly apiUrl = 'http://localhost:5070/api/auth';
     private readonly TOKEN_KEY = 'sambei_token';
 
     // Estado reactivo — toda la app puede leer esto
     currentUser = signal<AuthResponse | null>(null);
-    isAuthenticated = computed(() => !!this.currentUser() !== null);
+    isAuthenticated = computed(() => this.currentUser() !== null);
 
     constructor() {
         // Al iniciar la app, restaura la sesión si hay token guardado
@@ -55,7 +55,7 @@ export class AuthService {
         const token = localStorage.getItem(this.TOKEN_KEY)
         if (token) {
             // Token existe — restauramos un usuario básico para mantener la sesión activa
-            this.currentUser.set({ token, email: '', userName: '' });
+            this.currentUser.set({ token, email: '', expiresAt: '' });
         }
     }
 }

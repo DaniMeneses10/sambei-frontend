@@ -1,26 +1,27 @@
   export interface LoginRequest {
-    email: string;
-    password: string;
+      email: string;
+      password: string;
   }
 
   export interface RegisterRequest {
-    email: string;
-    password: string;
-    userName: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      password: string;
   }
 
   export interface AuthResponse {
-    token: string;
-    email: string;
-    userName: string;
+      token: string;
+      email: string;
+      expiresAt: string;
   }
 
   export interface ForgotPasswordRequest {
-    email: string;
+      email: string;
   }
 
   export interface ResetPasswordRequest {
-    email: string;
-    token: string;
-    newPassword: string;
+      email: string;
+      token: string;
+      newPassword: string;
   }

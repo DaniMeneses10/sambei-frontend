@@ -12,7 +12,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from "@a
         }
     ],
     template: `
-        <div class="flex felx.col gap-1">
+        <div class="flex flex-col gap-1">
             @if(label()){
                 <label class="text-sm font-medium text-slate-300">
                     {{ label() }}

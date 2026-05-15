@@ -1,34 +1,61 @@
 {
-  "hash": "57420b11",
-  "configHash": "c37b50c4",
+  "hash": "7824a246",
+  "configHash": "53d68a2c",
   "lockfileHash": "03fb53e4",
-  "browserHash": "ba0f2b03",
+  "browserHash": "824dce88",
   "optimized": {
+    "@angular/common": {
+      "src": "../../../../../../node_modules/@angular/common/fesm2022/common.mjs",
+      "file": "@angular_common.js",
+      "fileHash": "630c83a2",
+      "needsInterop": false
+    },
+    "@angular/common/http": {
+      "src": "../../../../../../node_modules/@angular/common/fesm2022/http.mjs",
+      "file": "@angular_common_http.js",
+      "fileHash": "c0991282",
+      "needsInterop": false
+    },
     "@angular/core": {
       "src": "../../../../../../node_modules/@angular/core/fesm2022/core.mjs",
       "file": "@angular_core.js",
-      "fileHash": "23e8028c",
+      "fileHash": "f6e41ed2",
+      "needsInterop": false
+    },
+    "@angular/forms": {
+      "src": "../../../../../../node_modules/@angular/forms/fesm2022/forms.mjs",
+      "file": "@angular_forms.js",
+      "fileHash": "40fece73",
       "needsInterop": false
     },
     "@angular/platform-browser": {
       "src": "../../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
       "file": "@angular_platform-browser.js",
-      "fileHash": "df942cbc",
+      "fileHash": "a159895f",
       "needsInterop": false
     },
     "@angular/router": {
       "src": "../../../../../../node_modules/@angular/router/fesm2022/router.mjs",
       "file": "@angular_router.js",
-      "fileHash": "d275b6e9",
+      "fileHash": "02d2b291",
       "needsInterop": false
     }
   },
   "chunks": {
-    "chunk-QANTVKUU": {
-      "file": "chunk-QANTVKUU.js"
+    "chunk-G36ZHKPT": {
+      "file": "chunk-G36ZHKPT.js"
     },
-    "chunk-EUTOFWRQ": {
-      "file": "chunk-EUTOFWRQ.js"
+    "chunk-A5VNGDMT": {
+      "file": "chunk-A5VNGDMT.js"
+    },
+    "chunk-PDEWGS3V": {
+      "file": "chunk-PDEWGS3V.js"
+    },
+    "chunk-5DVD6KCL": {
+      "file": "chunk-5DVD6KCL.js"
+    },
+    "chunk-IUBWJNQB": {
+      "file": "chunk-IUBWJNQB.js"
     }
   }
 }
