@@ -1,222 +1,235 @@
-import { Component, computed, inject, signal } from '@angular/core';
-  import { NgClass } from '@angular/common';
-  import { Router } from '@angular/router';
-  import { NgApexchartsModule } from 'ng-apexcharts';
-  import { AuthService } from '../../core/services/auth.service';
-  import {
-      MOCK_POSITIONS, MOCK_HISTORY, MOCK_CONGRESS_TRADES,
-      MOCK_AI_SIGNALS, ASSET_COLORS, PERIODS, PERIOD_MONTHS
-  } from './mock-portfolio.data';
+import { NgClass } from "@angular/common";
+import { Component, computed, inject, signal } from "@angular/core";
+import { NgApexchartsModule } from "ng-apexcharts";
+import { AuthService } from "../../core/services/auth.service";
+import { DashboardService } from "../../core/services/dashboard.service";
+import { DashboardResponse, PriceHistoryPoint } from "./dashboard.models";
+import { ASSET_COLORS, MOCK_AI_SIGNALS, PERIODS } from "./mock-portfolio.data";
 
   @Component({
-      selector: 'app-dashboard',
-      imports: [NgApexchartsModule, NgClass],
-      templateUrl: './dashboard.component.html',
+    selector: 'app-dashboard',
+    imports: [NgApexchartsModule, NgClass],
+    templateUrl: './dashboard.component.html',
   })
   export class DashboardComponent {
-      private readonly router = inject(Router);
-      readonly authService  = inject(AuthService);
+    readonly authService   = inject(AuthService);
+    private readonly dashboardSvc  = inject(DashboardService);
 
-      // Datos mock
-      readonly positions    = MOCK_POSITIONS;
-      readonly aiSignals    = MOCK_AI_SIGNALS;
-      readonly periods      = PERIODS;
-      readonly assetColors  = ASSET_COLORS;
+    // Estado de carga
+    loading = signal(true);
+    error   = signal<string | null>(null);
 
-      // Signals de filtros
-      activeAssets      = signal(new Set(['EIMI', 'VWCE', 'CNDX']));
-      showBuyPoints     = signal(true);
-      showCongressional = signal(true);
-      selectedPeriod    = signal('1A');
+    // Datos reales del backend
+    dashboardData = signal<DashboardResponse | null>(null);
 
-      // Totales del portfolio
-      totalValue = computed(() =>
-          this.positions.reduce((sum, p) => sum + p.value, 0)
-      );
-      totalProfit = computed(() =>
-          this.positions.reduce((sum, p) => sum + p.netProfit, 0)
-      );
-      totalProfitPercent = computed(() => {
-          const invested = this.totalValue() - this.totalProfit();
-          return (this.totalProfit() / invested) * 100;
-      });
+    // Filtros de la gráfica
+    activeAssets      = signal(new Set<string>());
+    showBuyPoints     = signal(true);
+    showCongressional = signal(true);
+    selectedPeriod    = signal('1A');
 
-      // Series de la gráfica — se recalcula cuando cambian los filtros
-      chartSeries = computed(() => {
-          const active = this.activeAssets();
-          const take   = PERIOD_MONTHS[this.selectedPeriod()] ?? 17;
+    readonly periods    = PERIODS;
+    readonly assetColors = ASSET_COLORS;
 
-          return MOCK_POSITIONS
-              .filter(p => active.has(p.symbol))
-              .map(p => ({
-                  name: p.symbol,
-                  data: MOCK_HISTORY[p.symbol].slice(-take).map(pt => ({
-                      x: pt.date,
-                      y: pt.returnPercent
-                  }))
-              }));
-      });
-
-      // Colores alineados con las series activas
-      chartColors = computed(() => {
-          const active = this.activeAssets();
-          return MOCK_POSITIONS
-              .filter(p => active.has(p.symbol))
-              .map(p => ASSET_COLORS[p.symbol]);
-      });
-
-      // Annotations (puntos de compra + trades congresistas)
-      chartAnnotations = computed(() => {
-          const xaxis: any[] = [];
-          const active = this.activeAssets();
-          const take   = PERIOD_MONTHS[this.selectedPeriod()] ?? 17;
-
-          // Punto de compra — línea vertical coloreada en la fecha de compra
-          // Solo visible en períodos donde enero 2024 entra en el rango (ej: 1A)
-          if (this.showBuyPoints()) {
-              MOCK_POSITIONS.filter(p => active.has(p.symbol)).forEach(p => {
-                  const history    = MOCK_HISTORY[p.symbol];
-                  const buyDate    = history[0].date;
-                  const isVisible  = history.slice(-take).some(pt => pt.date === buyDate);
-
-                  if (isVisible) {
-                      xaxis.push({
-                          x: buyDate,
-                          borderColor: ASSET_COLORS[p.symbol],
-                          borderWidth: 2,
-                          strokeDashArray: 0,
-                          label: {
-                              borderColor: ASSET_COLORS[p.symbol],
-                              offsetY: -5,
-                              text: `▲ Compré ${p.symbol} a ${this.formatUSD(p.openPrice)}`,
-                              style: {
-                                  color: '#fff',
-                                  background: ASSET_COLORS[p.symbol],
-                                  fontSize: '9px',
-                                  padding: { left: 4, right: 4, top: 2, bottom: 2 }
-                              }
-                          }
-                      });
-                  }
-              });
+    constructor() {
+      // Cargar datos al iniciar el componente
+      this.dashboardSvc.getDashboard().subscribe({
+        next: data => {
+          if (!data) {
+            this.error.set('El servidor no devolvió datos. Verificá que el backend esté corriendo.');
+            this.loading.set(false);
+            return;
           }
+          this.dashboardData.set(data);
+          this.activeAssets.set(new Set(data.investments.map(i => i.symbol)));
+          this.loading.set(false);
+        },
+        error: err => {
+          this.error.set('Error al cargar el dashboard. Intentá de nuevo.');
+          this.loading.set(false);
+          console.error(err);
+        }
+      });
+    }
 
-          // Trades del Congreso — línea del color del ETF involucrado con detalle completo
-          if (this.showCongressional()) {
-              MOCK_CONGRESS_TRADES.filter(t => active.has(t.symbol)).forEach(t => {
-                  const action   = t.action === 'BUY' ? 'COMPRÓ' : 'VENDIÓ';
-                  const lastName = t.member.split(' ')[1];
-                  const color    = ASSET_COLORS[t.symbol];
-                  xaxis.push({
-                      x: t.date,
-                      borderColor: color,
-                      borderWidth: 1,
-                      strokeDashArray: 4,
-                      label: {
-                          borderColor: color,
-                          text: `★ ${lastName} ${action} ${t.symbol} · ${t.amount}`,
-                          style: {
-                              color: '#fff',
-                              background: color,
-                              fontSize: '9px',
-                              padding: { left: 4, right: 4, top: 2, bottom: 2 }
-                          }
-                      }
-                  });
-              });
-          }
+    // Totales desde el backend
+    totalValue = computed(() => this.dashboardData()?.totalCurrentValue ?? 0);
+    totalProfit = computed(() => this.dashboardData()?.totalPnL ?? 0);
+    totalProfitPercent = computed(() => this.dashboardData()?.totalPnLPercent ?? 0);
+    isWinning = computed(() => this.totalProfit() >= 0);
 
-          // Línea de referencia en 0% — indica el precio de compra original
-          const yaxis = [{
-              y: 0,
-              borderColor: '#475569',
-              borderWidth: 1,
-              strokeDashArray: 3,
+    get positions() {
+      return (this.dashboardData()?.investments ?? []).map(inv => ({
+        symbol:           inv.symbol,
+        name:             inv.name,
+        broker:           'XTB',
+        volume:           inv.quantity,
+        openPrice:        inv.buyPrice,
+        currentPrice:     inv.currentPrice,
+        value:            inv.currentValue,
+        netProfit:        inv.pnL,
+        netProfitPercent: inv.pnLPercent
+      }));
+    }
+
+    readonly aiSignals = MOCK_AI_SIGNALS;
+
+    signalColor(signal: string): string {
+      return ({ BUY: '#22c55e', HOLD: '#0ea5e9', CAUTION: '#f59e0b' } as Record<string, string>)[signal] ?? '#94a3b8';
+    }
+
+    signalIcon(signal: string): string {
+      return ({ BUY: '▲', HOLD: '●', CAUTION: '▼' } as Record<string, string>)[signal] ?? '●';
+    }
+
+    signalLabel(signal: string): string {
+      return ({ BUY: 'COMPRAR', HOLD: 'MANTENER', CAUTION: 'PRECAUCIÓN' } as Record<string, string>)[signal] ?? signal;
+    }
+
+    // Series de la gráfica con datos reales
+    chartSeries = computed(() => {
+      const data = this.dashboardData();
+      if (!data) return [];
+
+      const active = this.activeAssets();
+
+      return data.investments
+        .filter(inv => active.has(inv.symbol))
+        .map(inv => ({
+          name: inv.symbol,
+          data: this.filterByPeriod(inv.history, this.selectedPeriod())
+            .map(pt => ({ x: pt.date, y: pt.returnPercent }))
+        }));
+    });
+
+    // Colores alineados con las series activas
+    chartColors = computed(() => {
+      const data = this.dashboardData();
+      if (!data) return [];
+      const active = this.activeAssets();
+      return data.investments
+        .filter(inv => active.has(inv.symbol))
+        .map(inv => ASSET_COLORS[inv.symbol] ?? '#94a3b8');
+    });
+
+    // Annotations (puntos de compra + trades del congreso)
+    chartAnnotations = computed(() => {
+      const data = this.dashboardData();
+      if (!data) return { points: [], xaxis: [], yaxis: [] };
+
+      const xaxis: any[] = [];
+      const active = this.activeAssets();
+
+      // Punto de compra — línea vertical en la fecha de compra
+      if (this.showBuyPoints()) {
+        data.investments.filter(inv => active.has(inv.symbol)).forEach(inv => {
+          const buyDate   = inv.purchaseDate.substring(0, 10);
+          const filtered  = this.filterByPeriod(inv.history, this.selectedPeriod());
+          const isVisible = filtered.some(pt => pt.date >= buyDate);
+          const color     = ASSET_COLORS[inv.symbol] ?? '#94a3b8';
+
+          if (isVisible) {
+            xaxis.push({
+              x: buyDate,
+              borderColor: color,
+              borderWidth: 2,
+              strokeDashArray: 0,
               label: {
-                  borderColor: 'transparent',
-                  text: 'Tu precio de compra',
-                  position: 'left',
-                  style: {
-                      color: '#64748b',
-                      background: 'transparent',
-                      fontSize: '10px'
-                  }
+                borderColor: color,
+                offsetY: -5,
+                text: `▲ Compré ${inv.symbol} a ${this.formatUSD(inv.buyPrice)}`,
+                style: { color: '#fff', background: color, fontSize: '9px',
+                         padding: { left: 4, right: 4, top: 2, bottom: 2 } }
               }
-          }];
+            });
+          }
+        });
+      }
 
-          return { points: [], xaxis, yaxis };
-      });
-
-      // Configuración estática de la gráfica
-      readonly chartConfig = {
-          chart: {
-              type: 'line' as const,
-              height: 300,
-              background: 'transparent',
-              toolbar: { show: false },
-              zoom:    { enabled: false }
-          },
-          stroke: { curve: 'smooth' as const, width: 2 },
-          xaxis: {
-              type: 'category' as const,
-              labels: { style: { colors: '#64748b', fontSize: '11px' } },
-              axisBorder: { color: '#334155' },
-              axisTicks:  { color: '#334155' }
-          },
-          yaxis: {
-              title: {
-                  text: 'Rendimiento (%)',
-                  style: { color: '#475569', fontSize: '10px', fontWeight: 400 }
-              },
-              labels: {
-                  style: { colors: '#64748b', fontSize: '11px' },
-                  formatter: (val: number) => `${val.toFixed(1)}%`
-              }
-          },
-          grid:    { borderColor: '#1e293b', strokeDashArray: 4 },
-          tooltip: {
-              theme: 'dark',
-              y: { formatter: (val: number) => `${val.toFixed(2)}%` }
-          },
-          legend: { show: false },
-          theme:  { mode: 'dark' as const }
-      };
-
-      isWinning = computed(() => this.totalProfit() >= 0);
-
-      toggleAsset(symbol: string) {
-          this.activeAssets.update(set => {
-              const next = new Set(set);
-              next.has(symbol) ? next.delete(symbol) : next.add(symbol);
-              return next;
+      // Trades del Congreso (vacío hasta F6)
+      if (this.showCongressional()) {
+        data.congressionalTrades.filter(t => active.has(t.symbol)).forEach(t => {
+          const action   = t.action === 'BUY' ? 'COMPRÓ' : 'VENDIÓ';
+          const lastName = t.member.split(' ')[1];
+          const color    = ASSET_COLORS[t.symbol] ?? '#94a3b8';
+          xaxis.push({
+            x: t.date,
+            borderColor: color,
+            borderWidth: 1,
+            strokeDashArray: 4,
+            label: {
+              borderColor: color,
+              text: `★ ${lastName} ${action} ${t.symbol} · ${t.amount}`,
+              style: { color: '#fff', background: color, fontSize: '9px',
+                       padding: { left: 4, right: 4, top: 2, bottom: 2 } }
+            }
           });
+        });
       }
 
-      isAssetActive(symbol: string): boolean {
-          return this.activeAssets().has(symbol);
-      }
+      const yaxis = [{
+        y: 0,
+        borderColor: '#475569',
+        borderWidth: 1,
+        strokeDashArray: 3,
+        label: {
+          borderColor: 'transparent',
+          text: 'Tu precio de compra',
+          position: 'left',
+          style: { color: '#64748b', background: 'transparent', fontSize: '10px' }
+        }
+      }];
 
-      signalColor(signal: string): string {
-          return { BUY: '#22c55e', HOLD: '#0ea5e9', CAUTION: '#f59e0b' }[signal] ?? '#94a3b8';
-      }
+      return { points: [], xaxis, yaxis };
+    });
 
-      signalIcon(signal: string): string {
-          return { BUY: '▲', HOLD: '●', CAUTION: '▼' }[signal] ?? '●';
-      }
+    readonly chartConfig = {
+      chart: { type: 'line' as const, height: 300, background: 'transparent',
+               toolbar: { show: false }, zoom: { enabled: false } },
+      stroke: { curve: 'smooth' as const, width: 2 },
+      xaxis: { type: 'category' as const,
+               labels: { style: { colors: '#64748b', fontSize: '11px' } },
+               axisBorder: { color: '#334155' }, axisTicks: { color: '#334155' } },
+      yaxis: {
+        title: { text: 'Rendimiento (%)', style: { color: '#475569', fontSize: '10px', fontWeight: 400 } },
+        labels: { style: { colors: '#64748b', fontSize: '11px' },
+                  formatter: (val: number) => `${val.toFixed(1)}%` }
+      },
+      grid:    { borderColor: '#1e293b', strokeDashArray: 4 },
+      tooltip: { theme: 'dark', y: { formatter: (val: number) => `${val.toFixed(2)}%` } },
+      legend:  { show: false },
+      theme:   { mode: 'dark' as const }
+    };
 
-      signalLabel(signal: string): string {
-          return { BUY: 'COMPRAR', HOLD: 'MANTENER', CAUTION: 'PRECAUCIÓN' }[signal] ?? signal;
-      }
+    private filterByPeriod(history: PriceHistoryPoint[], period: string): PriceHistoryPoint[] {
+      const days = { '1M': 30, '3M': 90, '6M': 180, '1A': 365 }[period] ?? 365;
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      const cutoffStr = cutoff.toISOString().substring(0, 10);
+      return history.filter(pt => pt.date >= cutoffStr);
+    }
 
-      formatUSD(value: number): string {
-          return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
-      }
+    toggleAsset(symbol: string) {
+      this.activeAssets.update(set => {
+        const next = new Set(set);
+        next.has(symbol) ? next.delete(symbol) : next.add(symbol);
+        return next;
+      });
+    }
 
-      formatPercent(value: number): string {
-          return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
-      }
+    isAssetActive(symbol: string): boolean {
+      return this.activeAssets().has(symbol);
+    }
 
-      logout() {
-          this.authService.logout();
-      }
+    formatUSD(value: number): string {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+    }
+
+    formatPercent(value: number): string {
+      return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+    }
+
+    logout() {
+      this.authService.logout();
+    }
   }
