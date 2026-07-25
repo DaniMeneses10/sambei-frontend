@@ -1,0 +1,110 @@
+<div class="flex flex-col gap-4 p-6">
+
+  <h2 class="text-xl font-bold text-white">Agregar inversión</h2>
+
+  <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-4">
+
+    <!-- Nombre — se autocompleta solo desde el Symbol, no se tipea a mano (evita errores) -->
+    <div class="flex flex-col gap-1">
+      <label class="text-sm text-slate-400">Nombre</label>
+      <input formControlName="name"
+             readonly
+             placeholder="se completa solo al escribir el Symbol"
+             class="bg-slate-800 rounded-lg px-4 py-2 text-slate-400 outline-none cursor-not-allowed" />
+    </div>
+
+    <!-- Symbol + ProviderSymbol -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-slate-400">Symbol</label>
+        <input formControlName="symbol"
+               placeholder="ej: VOO"
+               class="bg-slate-800 rounded-lg px-4 py-2 text-white uppercase
+                      outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-slate-400">
+          Provider Symbol
+          <span class="text-slate-600 text-xs ml-1">(opcional — solo si el ticker real es distinto)</span>
+        </label>
+        <input formControlName="providerSymbol"
+               placeholder="ej: EIMI.L (ETF europeo) o BRK-B (acciones con clase)"
+               class="bg-slate-800 rounded-lg px-4 py-2 text-white outline-none
+                      focus:ring-2 focus:ring-blue-500" />
+      </div>
+    </div>
+
+    <!-- AssetType + Broker -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-slate-400">Tipo de asset</label>
+        <select formControlName="assetType"
+                class="bg-slate-800 rounded-lg px-4 py-2 text-white outline-none
+                       focus:ring-2 focus:ring-blue-500">
+          <option [value]="AssetType.Crypto">Crypto</option>
+          <option [value]="AssetType.ETF">ETF</option>
+          <option [value]="AssetType.Stock">Acción</option>
+        </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-slate-400">Broker</label>
+        <input formControlName="broker"
+               placeholder="ej: XTB, HAPI, Manual"
+               class="bg-slate-800 rounded-lg px-4 py-2 text-white uppercase outline-none
+                      focus:ring-2 focus:ring-blue-500" />
+      </div>
+    </div>
+
+    <!-- Quantity + BuyPrice -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-slate-400">Cantidad</label>
+        <input formControlName="quantity"
+               type="number" step="any"
+               placeholder="ej: 10"
+               class="bg-slate-800 rounded-lg px-4 py-2 text-white outline-none
+                      focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm text-slate-400">Precio de compra</label>
+        <input formControlName="buyPrice"
+               type="number" step="any"
+               placeholder="ej: 450.00"
+               class="bg-slate-800 rounded-lg px-4 py-2 text-white outline-none
+                      focus:ring-2 focus:ring-blue-500" />
+      </div>
+    </div>
+
+    <!-- Fecha -->
+    <div class="flex flex-col gap-1">
+      <label class="text-sm text-slate-400">Fecha de compra</label>
+      <input formControlName="purchaseDate"
+             type="date"
+             class="bg-slate-800 rounded-lg px-4 py-2 text-white outline-none
+                    focus:ring-2 focus:ring-blue-500" />
+    </div>
+
+    <!-- Error -->
+    @if (error) {
+      <p class="text-red-400 text-sm">{{ error }}</p>
+    }
+
+    <!-- Botones -->
+    <div class="flex gap-3 pt-2">
+      <button type="submit"
+              [disabled]="form.invalid || saving"
+              class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-40
+                     rounded-lg py-2 font-semibold text-white transition-colors">
+        {{ saving ? 'Guardando...' : 'Guardar' }}
+      </button>
+      <button type="button"
+              (click)="onCancel()"
+              class="flex-1 bg-slate-700 hover:bg-slate-600 rounded-lg py-2
+                     text-white transition-colors">
+        Cancelar
+      </button>
+    </div>
+
+  </form>
+
+</div>

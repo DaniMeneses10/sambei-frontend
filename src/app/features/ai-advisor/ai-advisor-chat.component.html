@@ -1,0 +1,49 @@
+<div class="bg-surface-800 rounded-2xl p-4 lg:sticky lg:top-6 flex flex-col" style="max-height: 32rem;">
+    <h2 class="text-white font-semibold mb-4 flex items-center gap-2">
+        <span>🤖</span> AI Advisor
+        @if (symbol) {
+            <span class="text-primary-400 text-sm font-normal">· {{ symbol }}</span>
+        }
+    </h2>
+
+    <div #messagesContainer class="flex-1 overflow-y-auto flex flex-col gap-3 mb-4 pr-1">
+        @if (messages().length === 0) {
+            <p class="text-slate-500 text-xs">
+                @if (symbol) {
+                    Preguntale algo sobre {{ symbol }} — historial, noticias, congresistas y la proyección de tendencia ya están en contexto.
+                } @else {
+                    Preguntale algo sobre tu portfolio — ej: "¿debería comprar más VOO?"
+                }
+            </p>
+        }
+        @for (msg of messages(); track $index) {
+            <div class="rounded-xl p-3 text-xs leading-relaxed"
+                 [class.bg-primary-500/10]="msg.role === 'user'"
+                 [class.border]="msg.role === 'user'"
+                 [class.border-primary-500/30]="msg.role === 'user'"
+                 [class.bg-slate-700/40]="msg.role === 'assistant'">
+                <p class="text-slate-500 mb-1 font-semibold">{{ msg.role === 'user' ? 'Vos' : 'Advisor' }}</p>
+                <p class="text-slate-200 whitespace-pre-wrap">{{ msg.content }}</p>
+            </div>
+        }
+        @if (error()) {
+            <p class="text-danger text-xs">{{ error() }}</p>
+        }
+    </div>
+
+    <div class="flex gap-2">
+        <input
+            [ngModel]="question()"
+            (ngModelChange)="question.set($event)"
+            (keydown.enter)="send()"
+            [disabled]="sending()"
+            [placeholder]="symbol ? 'Preguntale sobre ' + symbol + '...' : 'Preguntale al Advisor...'"
+            class="flex-1 bg-surface-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-primary-500" />
+        <button
+            (click)="send()"
+            [disabled]="sending() || !question().trim()"
+            class="bg-primary-500 hover:bg-primary-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-xl px-4 transition-all">
+            {{ sending() ? '...' : 'Enviar' }}
+        </button>
+    </div>
+</div>

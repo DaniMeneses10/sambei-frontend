@@ -24,3 +24,6 @@ appsettings.Development.json
 # Cache
 *.cache
 node_modules
+
+# Cache de build de Angular/Vite — se regenera solo, no tiene sentido versionarlo
+.angular/

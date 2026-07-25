@@ -1,0 +1,50 @@
+<div class="flex flex-col gap-4 p-6">
+
+  <div>
+    <h2 class="text-xl font-bold text-white">¿Cuál es tu perfil como inversor?</h2>
+    <p class="text-sm text-slate-400 mt-1">
+      Elegí la opción que más se parezca a vos — así el AI Advisor te va a dar sugerencias concretas
+      sin tener que preguntártelo cada vez.
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-3">
+    @for (opt of options; track opt.value) {
+      <button
+          type="button"
+          (click)="select(opt)"
+          [ngClass]="selected() === opt.value
+              ? 'border-blue-500 bg-blue-500/10'
+              : 'border-slate-700 hover:border-slate-500'"
+          class="text-left rounded-xl border p-4 transition-colors">
+        <div class="flex items-center justify-between">
+          <span class="font-semibold text-white">{{ opt.label }}</span>
+          @if (selected() === opt.value) {
+            <span class="text-blue-400 text-sm">✓ Elegido</span>
+          }
+        </div>
+        <p class="text-sm text-slate-300 mt-1">{{ opt.description }}</p>
+        <p class="text-xs text-slate-500 mt-1">{{ opt.example }}</p>
+      </button>
+    }
+  </div>
+
+  <div class="flex gap-3 pt-2">
+    <button type="button"
+            (click)="confirm()"
+            [disabled]="selected() === null"
+            class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-40
+                   rounded-lg py-2 font-semibold text-white transition-colors">
+      Guardar
+    </button>
+    @if (current !== null) {
+      <button type="button"
+              (click)="cancel.emit()"
+              class="flex-1 bg-slate-700 hover:bg-slate-600 rounded-lg py-2
+                     text-white transition-colors">
+        Cancelar
+      </button>
+    }
+  </div>
+
+</div>

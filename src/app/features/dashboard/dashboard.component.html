@@ -2,22 +2,70 @@
 
       <!-- Navbar -->
       <nav class="bg-surface-800 border-b border-slate-700 px-4 lg:px-6 py-4 flex items-center justify-between">
-          <div>
-              <span class="text-xl font-bold text-primary-500">Sambei</span>
-              <span class="text-slate-500 text-xs ml-2 hidden sm:inline">Smart Analytics for Markets, Bitcoin, ETFs & Investments</span>
-          </div>
-          <div class="flex items-center gap-3">
-              <span class="text-slate-400 text-sm hidden md:block">{{ authService.currentUser()?.email }}</span>
-              <button
-                  (click)="logout()"
-                  class="text-sm text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded-lg transition-all">
-                  Salir
-              </button>
-          </div>
+            <div>
+                <span class="text-xl font-bold text-primary-500">Sambei</span>
+                <span class="text-slate-500 text-xs ml-2 hidden sm:inline">Smart Analytics for Markets, Bitcoin, ETFs & Investments</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-slate-400 text-sm hidden md:block">{{ authService.currentUser()?.email }}</span>
+
+                <button
+                    (click)="showRiskProfileModal.set(true)"
+                    class="text-sm text-slate-400 hover:text-white border border-slate-700
+                            hover:border-slate-500 px-3 py-1.5 rounded-lg transition-all">
+                    ⚙ Perfil: {{ riskProfileLabel(riskProfile()) }}
+                </button>
+
+                <!-- Dropdown de usuario — reemplaza el botón "Salir" suelto, mismo patrón que el
+                     dropdown de congresistas del dashboard (sin detección de click afuera). -->
+                <div class="relative">
+                    <button
+                        (click)="showUserMenu.set(!showUserMenu())"
+                        [ngClass]="showUserMenu() ? 'border-slate-400 text-slate-300' : 'border-slate-700 text-slate-400'"
+                        class="text-sm hover:text-white border hover:border-slate-500 px-3 py-1.5 rounded-lg transition-all">
+                        ☰ Menú
+                    </button>
+                    @if (showUserMenu()) {
+                    <div class="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-slate-700 bg-slate-900 p-1.5 shadow-xl">
+                        <button
+                            (click)="showUserMenu.set(false); showManualModal.set(true)"
+                            class="w-full text-left px-3 py-2 rounded text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+                            📖 Manual de uso
+                        </button>
+                        <button
+                            (click)="logout()"
+                            class="w-full text-left px-3 py-2 rounded text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+                            Salir
+                        </button>
+                    </div>
+                    }
+                </div>
+            </div>
       </nav>
 
       <!-- Contenido principal -->
       <main class="p-4 lg:p-6">
+        @if (loading()) {
+            <div class="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+                <div class="relative w-16 h-16">
+                    <div class="absolute inset-0 rounded-full border-4 border-slate-700"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-primary-500 border-t-transparent animate-spin"></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-primary-500 text-lg">📊</div>
+                </div>
+                <p class="text-slate-400 text-sm animate-pulse">Cargando tu portfolio…</p>
+            </div>
+        } @else if (error()) {
+            <div class="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-center px-4">
+                <span class="text-4xl">⚠️</span>
+                <p class="text-white font-semibold max-w-sm">{{ error() }}</p>
+                <button
+                    (click)="retry()"
+                    class="text-sm text-primary-500 hover:text-primary-400 border border-primary-500/30
+                           hover:border-primary-500 rounded-xl px-4 py-2 transition-all">
+                    Reintentar
+                </button>
+            </div>
+        } @else {
 
           <!-- Resumen portfolio -->
           <div class="mb-6 flex flex-col sm:flex-row sm:items-stretch gap-4">
@@ -46,8 +94,10 @@
                   </div>
               </div>
 
-              <!-- Botón nueva posición -->
-              <button class="text-primary-500 text-sm hover:text-primary-400 border border-primary-500/30 hover:border-primary-500 px-5 rounded-2xl transition-all whitespace-nowrap">
+              <!-- Botón nueva posición — único punto de entrada para agregar un símbolo nuevo -->
+              <button
+                  (click)="openAddForm()"
+                  class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-5 py-1.5 rounded-2xl transition-all whitespace-nowrap">
                   + Nueva posición
               </button>
 
@@ -67,24 +117,53 @@
                           @for (pos of positions; track pos.symbol) {
                               <button
                                   (click)="toggleAsset(pos.symbol)"
-                                  [style.border-color]="isAssetActive(pos.symbol) ? assetColors[pos.symbol] : '#334155'"
-                                  [style.color]="isAssetActive(pos.symbol) ? assetColors[pos.symbol] : '#475569'"
+                                  [style.border-color]="isAssetActive(pos.symbol) ? getColor(pos.symbol) : '#334155'"
+                                  [style.color]="isAssetActive(pos.symbol) ? getColor(pos.symbol) : '#475569'"
                                   class="px-3 py-1 rounded-full border text-xs font-semibold transition-all">
                                   ● {{ pos.symbol }}
                               </button>
                           }
-                          <button
-                              (click)="showBuyPoints.set(!showBuyPoints())"
-                              [ngClass]="showBuyPoints() ? 'border-slate-400 text-slate-300' : 'border-slate-700 text-slate-600'"
-                              class="px-3 py-1 rounded-full border text-xs transition-all">
-                              ▲ Mis compras
-                          </button>
-                          <button
-                              (click)="showCongressional.set(!showCongressional())"
-                              [ngClass]="showCongressional() ? 'border-warning text-warning' : 'border-slate-700 text-slate-600'"
-                              class="px-3 py-1 rounded-full border text-xs transition-all">
-                              ★ Congresistas
-                          </button>
+                          <!-- Filtro por congresista, con puntaje de 1-5 estrellas (historial real
+                               calculado — ver CalculateCongressMemberScoresCommandHandler). Evita
+                               que se amontonen todas las estrellas en el gráfico a la vez. -->
+                          <div class="relative">
+                              <button
+                                  (click)="showPoliticianMenu.set(!showPoliticianMenu())"
+                                  [ngClass]="showPoliticianMenu() ? 'border-warning text-warning' : 'border-slate-700 text-slate-600'"
+                                  class="px-3 py-1 rounded-full border text-xs transition-all">
+                                  ⭐ Filtrar congresistas
+                              </button>
+                              @if (showPoliticianMenu()) {
+                                  <div class="absolute z-20 mt-2 w-64 max-h-72 overflow-y-auto rounded-lg border border-slate-700 bg-slate-900 p-2 shadow-xl">
+                                      <input
+                                          type="text"
+                                          placeholder="Buscar congresista..."
+                                          [value]="politicianSearch()"
+                                          (input)="politicianSearch.set($any($event.target).value)"
+                                          class="w-full mb-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-slate-500" />
+                                      <div class="flex justify-between gap-2 px-2 pb-2 mb-1 border-b border-slate-800">
+                                          <button (click)="selectAllPoliticians()" class="text-xs text-primary-400 hover:underline">Seleccionar todos</button>
+                                          <button (click)="selectNonePoliticians()" class="text-xs text-slate-500 hover:underline">Desmarcar todos</button>
+                                      </div>
+                                      @for (opt of filteredPoliticianOptions(); track opt.name) {
+                                          <label class="flex items-center justify-between gap-2 px-2 py-1.5 rounded hover:bg-slate-800 cursor-pointer text-xs">
+                                              <span class="flex items-center gap-2 text-slate-300">
+                                                  <input type="checkbox"
+                                                      [checked]="isPoliticianActive(opt.name)"
+                                                      (change)="togglePolitician(opt.name)" />
+                                                  {{ opt.name }}
+                                              </span>
+                                              <span class="text-amber-400 tracking-tight">{{ starsLabel(opt.score?.starRating ?? null) }}</span>
+                                          </label>
+                                      }
+                                      @if (!politicianOptions().length) {
+                                          <p class="text-xs text-slate-500 px-2 py-1.5">Sin trades de congresistas todavía.</p>
+                                      } @else if (!filteredPoliticianOptions().length) {
+                                          <p class="text-xs text-slate-500 px-2 py-1.5">Sin resultados para "{{ politicianSearch() }}".</p>
+                                      }
+                                  </div>
+                              }
+                          </div>
                       </div>
 
                       <!-- Selector de período -->
@@ -106,7 +185,7 @@
                           [series]="chartSeries()"
                           [chart]="chartConfig.chart"
                           [stroke]="chartConfig.stroke"
-                          [xaxis]="chartConfig.xaxis"
+                          [xaxis]="chartXAxis()"
                           [yaxis]="chartConfig.yaxis"
                           [grid]="chartConfig.grid"
                           [tooltip]="chartConfig.tooltip"
@@ -115,12 +194,29 @@
                           [colors]="chartColors()"
                           [annotations]="chartAnnotations()" />
 
+                      <!-- Tooltip flotante al hacer hover sobre un trade del Congreso -->
+                      @if (hoveredCongressTrade(); as h) {
+                          <div
+                              class="fixed z-50 bg-surface-900 border border-slate-700 rounded-lg px-3 py-2 text-xs shadow-xl pointer-events-none"
+                              [style.left.px]="h.x + 12"
+                              [style.top.px]="h.y + 12">
+                              <p class="text-white font-semibold mb-1">{{ h.trade.member }}</p>
+                              <p class="text-slate-300">
+                                  {{ tradeActionLabel(h.trade.action) }}
+                                  <span class="font-semibold">{{ h.trade.symbol }}</span>
+                              </p>
+                              <p class="text-slate-400 mt-1">{{ formatTradeDate(h.trade.date) }}</p>
+                              <p class="text-slate-400">Rango declarado: {{ h.trade.amount }}</p>
+                              <p class="text-slate-500 text-[10px] mt-1 italic">El STOCK Act reporta rangos, no montos exactos.</p>
+                          </div>
+                      }
+
                       <!-- Leyenda manual -->
                       <div class="flex flex-wrap gap-4 mt-2 px-2">
                           @for (pos of positions; track pos.symbol) {
                               @if (isAssetActive(pos.symbol)) {
                                   <div class="flex items-center gap-1.5">
-                                      <div class="w-3 h-0.5 rounded" [style.background-color]="assetColors[pos.symbol]"></div>
+                                      <div class="w-3 h-0.5 rounded" [style.background-color]="getColor(pos.symbol)"></div>
                                       <span class="text-slate-400 text-xs">{{ pos.symbol }}</span>
                                       <span class="text-xs font-semibold"
                                           [style.color]="pos.netProfitPercent >= 0 ? '#22c55e' : '#ef4444'">
@@ -154,10 +250,11 @@
                               </thead>
                               <tbody>
                                   @for (pos of positions; track pos.symbol) {
-                                      <tr class="border-b border-slate-700/50 hover:bg-white/5 transition-all">
+                                      <tr (click)="navigateToDetail(pos.symbol)"
+                                      class="border-b border-slate-700/50 hover:bg-white/5 transition-all group cursor-pointer">
                                           <td class="py-3">
                                               <div class="flex items-center gap-2">
-                                                  <div class="w-2 h-2 rounded-full" [style.background-color]="assetColors[pos.symbol]"></div>
+                                                  <div class="w-2 h-2 rounded-full" [style.background-color]="getColor(pos.symbol)"></div>
                                                   <div>
                                                       <div class="text-white font-medium">{{ pos.symbol }}</div>
                                                       <div class="text-slate-500 text-xs">{{ pos.name }}</div>
@@ -177,6 +274,13 @@
                                                   {{ formatUSD(pos.netProfit) }}
                                               </div>
                                           </td>
+                                          <td class="py-3 text-right">
+                                              <button (click)="$event.stopPropagation(); confirmDelete(pos)"
+                                                      class="opacity-40 group-hover:opacity-100 transition-opacity
+                                                             text-slate-500 hover:text-red-400 px-2 py-1 text-sm">
+                                                  🗑
+                                              </button>
+                                          </td>
                                       </tr>
                                   }
                               </tbody>
@@ -186,16 +290,23 @@
                       <!-- Mobile: cards -->
                       <div class="md:hidden flex flex-col gap-3">
                           @for (pos of positions; track pos.symbol) {
-                              <div class="border border-slate-700 rounded-xl p-3">
+                              <div (click)="navigateToDetail(pos.symbol)"
+                                   class="border border-slate-700 rounded-xl p-3 active:bg-white/5 transition-colors cursor-pointer">
                                   <div class="flex items-center justify-between mb-2">
                                       <div class="flex items-center gap-2">
-                                          <div class="w-2 h-2 rounded-full" [style.background-color]="assetColors[pos.symbol]"></div>
+                                          <div class="w-2 h-2 rounded-full" [style.background-color]="getColor(pos.symbol)"></div>
                                           <span class="text-white font-semibold">{{ pos.symbol }}</span>
                                           <span class="text-slate-500 text-xs">{{ pos.broker }}</span>
                                       </div>
-                                      <span [style.color]="pos.netProfit >= 0 ? '#22c55e' : '#ef4444'" class="font-bold">
-                                          {{ formatPercent(pos.netProfitPercent) }}
-                                      </span>
+                                      <div class="flex items-center gap-2">
+                                          <span [style.color]="pos.netProfit >= 0 ? '#22c55e' : '#ef4444'" class="font-bold">
+                                              {{ formatPercent(pos.netProfitPercent) }}
+                                          </span>
+                                          <button (click)="$event.stopPropagation(); confirmDelete(pos)"
+                                                  class="text-slate-400 hover:text-red-400 transition-colors text-sm p-1">
+                                              🗑
+                                          </button>
+                                      </div>
                                   </div>
                                   <div class="grid grid-cols-3 gap-2 text-xs">
                                       <div>
@@ -219,40 +330,142 @@
 
               <!-- Columna derecha: AI Advisor -->
               <div class="lg:col-span-1">
-                  <div class="bg-surface-800 rounded-2xl p-4 lg:sticky lg:top-6">
-                      <h2 class="text-white font-semibold mb-4 flex items-center gap-2">
-                          <span>🤖</span> AI Advisor
-                          <span class="text-xs text-slate-500 font-normal ml-1">— basado en datos mock</span>
-                      </h2>
-
-                      <div class="flex flex-col gap-4">
-                          @for (aiSignal of aiSignals; track aiSignal.symbol) {
-                              <div class="border border-slate-700 rounded-xl p-3 hover:border-slate-600 transition-all">
-                                  <div class="flex items-center justify-between mb-2">
-                                      <div class="flex items-center gap-2">
-                                          <div class="w-2 h-2 rounded-full" [style.background-color]="assetColors[aiSignal.symbol]"></div>
-                                          <span class="text-white font-semibold text-sm">{{ aiSignal.symbol }}</span>
-                                      </div>
-                                      <span
-                                          [style.color]="signalColor(aiSignal.signal)"
-                                          [style.border-color]="signalColor(aiSignal.signal)"
-                                          class="text-xs font-bold border rounded-full px-2 py-0.5">
-                                          {{ signalIcon(aiSignal.signal) }} {{ signalLabel(aiSignal.signal) }}
-                                      </span>
-                                  </div>
-                                  <p class="text-slate-300 text-xs font-medium mb-1">{{ aiSignal.summary }}</p>
-                                  <p class="text-slate-500 text-xs leading-relaxed">{{ aiSignal.detail }}</p>
-                              </div>
-                          }
-                      </div>
-
-                      <button class="mt-4 w-full text-center text-primary-500 hover:text-primary-400 text-sm border border-primary-500/30
-  hover:border-primary-500 rounded-xl py-2 transition-all">
-                          Ver análisis completo →
-                      </button>
-                  </div>
+                  <app-ai-advisor-chat></app-ai-advisor-chat>
               </div>
 
           </div>
+          <!-- Sección de noticias -->
+          @if (allNews().length > 0) {
+          <div class="mt-6 bg-surface-800 rounded-2xl p-4">
+              <h2 class="text-white font-semibold mb-4 flex items-center gap-2">
+                  <span>📰</span> Noticias del portfolio
+                  <span class="text-xs text-slate-500 font-normal ml-1">— últimas {{ allNews().length }} noticias</span>
+              </h2>
+              <div class="flex flex-col gap-3">
+                  @for (item of allNews(); track item.url) {
+                  <a [href]="item.url" target="_blank" rel="noopener noreferrer"
+                     class="border border-slate-700 rounded-xl p-3 hover:border-slate-600
+                            transition-all group block">
+                      <div class="flex items-start gap-3">
+                          <div class="flex-1 min-w-0">
+                              <!-- Cabecera: símbolo + sentimiento + fecha -->
+                              <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                                  <span class="text-xs font-bold px-1.5 py-0.5 rounded"
+                                        [style.background-color]="getColor(item.symbol) + '33'"
+                                        [style.color]="getColor(item.symbol)">
+                                      {{ item.symbol }}
+                                  </span>
+                                  @if (item.sentimentScore !== null && item.sentimentScore !== undefined) {
+                                  <span class="text-xs font-semibold"
+                                        [style.color]="item.sentimentScore > 0 ? '#22c55e' : item.sentimentScore < 0 ? '#ef4444' : '#94a3b8'">
+                                      {{ item.sentimentScore > 0 ? '▲' : item.sentimentScore < 0 ? '▼' : '●' }}
+                                      {{ item.sentimentScore.toFixed(2) }}
+                                  </span>
+                                  }
+                                  <span class="text-slate-500 text-xs ml-auto">
+                                      {{ formatNewsDate(item.publishedAt) }}
+                                  </span>
+                              </div>
+                              <!-- Título -->
+                              <p class="text-white text-sm font-medium leading-snug
+                                        group-hover:text-primary-400 transition-colors">
+                                  {{ item.title }}
+                              </p>
+                              <!-- Resumen -->
+                              @if (item.summary) {
+                              <p class="text-slate-500 text-xs mt-1 line-clamp-2 leading-relaxed">
+                                  {{ item.summary }}
+                              </p>
+                              }
+                          </div>
+                          <!-- Flecha externa -->
+                          <span class="text-slate-600 group-hover:text-primary-400 transition-colors
+                                       text-sm mt-0.5 shrink-0">↗</span>
+                      </div>
+                  </a>
+                  }
+              </div>
+          </div>
+          } @else {
+          <div class="mt-6 bg-surface-800 rounded-2xl p-4">
+              <h2 class="text-white font-semibold mb-2 flex items-center gap-2">
+                  <span>📰</span> Noticias del portfolio
+              </h2>
+              <p class="text-slate-500 text-sm">Cargando noticias…</p>
+          </div>
+          }
+
+        }
       </main>
+      <!-- Modal: agregar inversión -->
+        @if (showAddForm()) {
+        <div class="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4"
+            (click)="showAddForm.set(false)">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg z-50 shadow-2xl"
+                (click)="$event.stopPropagation()">
+              <app-add-investment
+                  (saved)="onInvestmentSaved()"
+                  (cancel)="showAddForm.set(false)" />
+            </div>
+        </div>
+        }
+
+      <!-- Modal: perfil de riesgo — sin backdrop-close ni botón Cancelar la primera vez
+           (riskProfile() null), para forzar una elección real en vez de dejarlo sin definir. -->
+        @if (showRiskProfileModal()) {
+        <div class="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4"
+            (click)="riskProfile() !== null && showRiskProfileModal.set(false)">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg z-50 shadow-2xl"
+                (click)="$event.stopPropagation()">
+              <app-risk-profile-modal
+                  [current]="riskProfile()"
+                  (saved)="saveRiskProfile($event)"
+                  (cancel)="showRiskProfileModal.set(false)" />
+            </div>
+        </div>
+        }
+
+      <!-- Modal: manual de uso — a diferencia del de perfil de riesgo, este sí cierra con click en
+           el backdrop, no hay ninguna elección obligatoria acá. -->
+        @if (showManualModal()) {
+        <div class="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4"
+            (click)="showManualModal.set(false)">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto z-50 shadow-2xl"
+                (click)="$event.stopPropagation()">
+              <app-manual-modal (cancel)="showManualModal.set(false)" />
+            </div>
+        </div>
+        }
+
+      <!-- Modal: confirmar eliminación -->
+        @if (investmentToDelete()) {
+        <div class="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4"
+            (click)="investmentToDelete.set(null)">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm z-50 shadow-2xl p-6"
+                (click)="$event.stopPropagation()">
+
+              <h3 class="text-white font-bold text-lg mb-1">¿Eliminar inversión?</h3>
+              <p class="text-slate-400 text-sm mb-6">
+                Vas a eliminar
+                <span class="text-white font-semibold">{{ investmentToDelete()!.symbol }}</span>
+                — {{ investmentToDelete()!.name }}.
+                Esta acción no se puede deshacer.
+              </p>
+
+              <div class="flex gap-3">
+                <button (click)="onDeleteConfirmed()"
+                        class="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-lg py-2
+                               font-semibold transition-colors">
+                  Eliminar
+                </button>
+                <button (click)="investmentToDelete.set(null)"
+                        class="flex-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg py-2
+                               transition-colors">
+                  Cancelar
+                </button>
+              </div>
+
+            </div>
+        </div>
+        }
   </div>

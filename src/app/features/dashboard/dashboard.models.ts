@@ -14,6 +14,7 @@ export interface PriceHistoryPoint {
     name: string;
     symbol: string;
     assetType: number;
+    broker: string;
     quantity: number;
     buyPrice: number;
     currentPrice: number;

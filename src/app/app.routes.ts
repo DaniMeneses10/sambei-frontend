@@ -21,6 +21,10 @@ export const routes: Routes = [
             {
                 path: 'forgot-password',
                 loadComponent: () => import ('./features/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
+            },
+            {
+                path: 'reset-password',
+                loadComponent: () => import ('./features/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
             }
         ]
     },
@@ -28,6 +32,11 @@ export const routes: Routes = [
         path: 'dashboard',
         canActivate: [authGuard],
         loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+    },
+    {
+        path: 'portfolio/:symbol',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/investment-detail/investment-detail.component').then(m => m.InvestmentDetailComponent)
     },
     {
         path: '**',

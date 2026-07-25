@@ -1,0 +1,389 @@
+<div class="min-h-screen bg-surface-900">
+
+    <!-- Navbar — el logo hace de "volver al home", mismo criterio que cualquier app estándar -->
+    <nav class="bg-surface-800 border-b border-slate-700 px-4 lg:px-6 py-4 flex items-center gap-4">
+      <button (click)="goBack()"
+              class="text-xl font-bold text-primary-500 hover:text-primary-400 transition-colors">
+        Sambei
+      </button>
+    </nav>
+
+    <main class="p-4 lg:p-6">
+
+      <!-- Loading -->
+      @if (loading()) {
+        <div class="text-slate-400 text-sm">Cargando...</div>
+      }
+
+      <!-- Error -->
+      @if (error()) {
+        <div class="text-red-400 text-sm">{{ error() }}</div>
+      }
+
+      @if (data(); as d) {
+
+        <!-- Header del asset -->
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full" [style.background-color]="getColor(d.symbol)"></div>
+            <div>
+              <h1 class="text-white text-2xl font-bold">{{ d.symbol }}</h1>
+              <p class="text-slate-500 text-sm">{{ d.name }} · {{ d.broker }}</p>
+            </div>
+          </div>
+
+          <div class="sm:ml-auto flex flex-col sm:items-end">
+            <p class="text-white text-2xl font-bold">{{ formatUSD(d.currentPrice) }}</p>
+            <p class="text-sm font-semibold"
+               [style.color]="isWinning() ? '#22c55e' : '#ef4444'">
+              {{ formatPercent(d.pnLPercent) }} · {{ formatUSD(d.pnL) }}
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="lg:col-span-2 flex flex-col gap-6">
+
+        <!-- Gráfica -->
+        <div class="bg-surface-800 rounded-2xl p-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <p class="text-slate-400 text-xs">Rendimiento desde precio de compra</p>
+            <div class="flex gap-1">
+              @for (p of periods; track p) {
+                <button
+                  (click)="selectedPeriod.set(p)"
+                  [ngClass]="selectedPeriod() === p ? 'bg-primary-500 text-white' : 'text-slate-500 hover:text-slate-300'"
+                  class="px-3 py-1 rounded-lg text-xs font-medium transition-all">
+                  {{ p }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Toggles de anotaciones — opcionales, mismo patrón que el dashboard -->
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button
+                (click)="showBuyPoints.set(!showBuyPoints())"
+                [ngClass]="showBuyPoints() ? 'border-slate-400 text-slate-300' : 'border-slate-700 text-slate-600'"
+                class="px-3 py-1 rounded-full border text-xs transition-all">
+                ▲ Mis compras
+            </button>
+            <!-- Filtro por congresista, con puntaje de 1-5 estrellas — mismo mecanismo que el Dashboard. -->
+            <div class="relative">
+                <button
+                    (click)="showPoliticianMenu.set(!showPoliticianMenu())"
+                    [ngClass]="showPoliticianMenu() ? 'border-warning text-warning' : 'border-slate-700 text-slate-600'"
+                    class="px-3 py-1 rounded-full border text-xs transition-all">
+                    ⭐ Filtrar congresistas
+                </button>
+                @if (showPoliticianMenu()) {
+                    <div class="absolute z-20 mt-2 w-64 max-h-72 overflow-y-auto rounded-lg border border-slate-700 bg-slate-900 p-2 shadow-xl">
+                        <input
+                            type="text"
+                            placeholder="Buscar congresista..."
+                            [value]="politicianSearch()"
+                            (input)="politicianSearch.set($any($event.target).value)"
+                            class="w-full mb-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-slate-500" />
+                        <div class="flex justify-between gap-2 px-2 pb-2 mb-1 border-b border-slate-800">
+                            <button (click)="selectAllPoliticians()" class="text-xs text-primary-400 hover:underline">Seleccionar todos</button>
+                            <button (click)="selectNonePoliticians()" class="text-xs text-slate-500 hover:underline">Desmarcar todos</button>
+                        </div>
+                        @for (opt of filteredPoliticianOptions(); track opt.name) {
+                            <label class="flex items-center justify-between gap-2 px-2 py-1.5 rounded hover:bg-slate-800 cursor-pointer text-xs">
+                                <span class="flex items-center gap-2 text-slate-300">
+                                    <input type="checkbox"
+                                        [checked]="isPoliticianActive(opt.name)"
+                                        (change)="togglePolitician(opt.name)" />
+                                    {{ opt.name }}
+                                </span>
+                                <span class="text-amber-400 tracking-tight">{{ starsLabel(opt.score?.starRating ?? null) }}</span>
+                            </label>
+                        }
+                        @if (!politicianOptions().length) {
+                            <p class="text-xs text-slate-500 px-2 py-1.5">Sin trades de congresistas todavía.</p>
+                        } @else if (!filteredPoliticianOptions().length) {
+                            <p class="text-xs text-slate-500 px-2 py-1.5">Sin resultados para "{{ politicianSearch() }}".</p>
+                        }
+                    </div>
+                }
+            </div>
+          </div>
+
+          <apx-chart
+            [series]="chartSeries()"
+            [chart]="chartConfig.chart"
+            [stroke]="chartConfig.stroke"
+            [xaxis]="chartXAxis()"
+            [yaxis]="chartConfig.yaxis"
+            [grid]="chartConfig.grid"
+            [tooltip]="chartConfig.tooltip"
+            [legend]="chartConfig.legend"
+            [theme]="chartConfig.theme"
+            [annotations]="chartAnnotations()"
+            [colors]="chartColors()" />
+
+          <!-- Tooltip flotante al hacer hover sobre un trade del Congreso -->
+          @if (hoveredCongressTrade(); as h) {
+              <div
+                  class="fixed z-50 bg-surface-900 border border-slate-700 rounded-lg px-3 py-2 text-xs shadow-xl pointer-events-none"
+                  [style.left.px]="h.x + 12"
+                  [style.top.px]="h.y + 12">
+                  <p class="text-white font-semibold mb-1">{{ h.trade.member }}</p>
+                  <p class="text-slate-300">
+                      {{ tradeActionLabel(h.trade.action) }}
+                      <span class="font-semibold">{{ h.trade.symbol }}</span>
+                  </p>
+                  <p class="text-slate-400 mt-1">{{ formatTradeDate(h.trade.date) }}</p>
+                  <p class="text-slate-400">Rango declarado: {{ h.trade.amount }}</p>
+                  <p class="text-slate-500 text-[10px] mt-1 italic">El STOCK Act reporta rangos, no montos exactos.</p>
+              </div>
+          }
+        </div>
+
+        <!-- Resumen agregado (costo promedio ponderado si hay más de una compra) -->
+        <div class="bg-surface-800 rounded-2xl p-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div><p class="text-slate-500 text-xs mb-1">Cantidad total</p><p class="text-white font-semibold">{{ d.quantity }}</p></div>
+          <div><p class="text-slate-500 text-xs mb-1">Costo promedio</p><p class="text-slate-300 font-semibold">{{ formatUSD(d.buyPrice) }}</p></div>
+          <div><p class="text-slate-500 text-xs mb-1">Invertido total</p><p class="text-slate-300 font-semibold">{{ formatUSD(d.buyPrice * d.quantity) }}</p></div>
+          <div>
+            <p class="text-slate-500 text-xs mb-1">Ganancia / Pérdida</p>
+            <p class="font-bold" [style.color]="isWinning() ? '#22c55e' : '#ef4444'">
+              {{ formatPercent(d.pnLPercent) }} · {{ formatUSD(d.pnL) }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Header de la sección de lotes + botón para sumar otra compra del mismo activo (DCA) -->
+        <div class="flex items-center justify-between">
+          <p class="text-slate-400 text-xs">Historial de compras</p>
+          <button (click)="openAddPurchase()"
+                  class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors">
+            + Agregar compra
+          </button>
+        </div>
+
+        <!-- Mobile: una card por lote/compra -->
+        <div class="md:hidden flex flex-col gap-3">
+          @for (p of d.purchases; track p.id) {
+          <div class="bg-surface-800 rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-white text-sm font-semibold">{{ formatDate(p.date) }}</p>
+              <button (click)="openEdit(p)" class="text-slate-500 hover:text-primary-400 text-xs">✎ Editar</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div><p class="text-slate-500 text-xs mb-1">Broker</p><p class="text-slate-300 text-sm font-semibold">{{ p.broker }}</p></div>
+              <div><p class="text-slate-500 text-xs mb-1">Cantidad</p><p class="text-white text-sm font-semibold">{{ p.quantity }}</p></div>
+              <div><p class="text-slate-500 text-xs mb-1">Precio compra</p><p class="text-slate-300 text-sm font-semibold">{{ formatUSD(p.price) }}</p></div>
+              <div>
+                <p class="text-slate-500 text-xs mb-1">Ganancia / Pérdida</p>
+                <p class="text-sm font-semibold" [style.color]="purchasePnL(p).pnl >= 0 ? '#22c55e' : '#ef4444'">
+                  {{ formatPercent(purchasePnL(p).pnlPercent) }}
+                </p>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+
+        <!-- Desktop: tabla, una fila por lote/compra -->
+        <div class="hidden md:block bg-surface-800 rounded-2xl p-4">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-slate-500 text-xs border-b border-slate-700">
+                <th class="text-left pb-2">Fecha de compra</th>
+                <th class="text-left pb-2">Broker</th>
+                <th class="text-right pb-2">Precio compra</th>
+                <th class="text-right pb-2">Cantidad</th>
+                <th class="text-right pb-2">Invertido</th>
+                <th class="text-right pb-2">Valor actual</th>
+                <th class="text-right pb-2">Ganancia / Pérdida</th>
+                <th class="text-right pb-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of d.purchases; track p.id) {
+              <tr class="border-b border-slate-800 last:border-0">
+                <td class="py-3 text-slate-400">{{ formatDate(p.date) }}</td>
+                <td class="py-3 text-slate-400">{{ p.broker }}</td>
+                <td class="py-3 text-right text-slate-400">{{ formatUSD(p.price) }}</td>
+                <td class="py-3 text-right text-slate-400">{{ p.quantity }}</td>
+                <td class="py-3 text-right text-slate-400">{{ formatUSD(purchasePnL(p).invested) }}</td>
+                <td class="py-3 text-right text-white font-medium">{{ formatUSD(purchasePnL(p).currentValue) }}</td>
+                <td class="py-3 text-right">
+                  <div class="font-semibold" [style.color]="purchasePnL(p).pnl >= 0 ? '#22c55e' : '#ef4444'">{{ formatPercent(purchasePnL(p).pnlPercent) }}</div>
+                  <div class="text-xs" [style.color]="purchasePnL(p).pnl >= 0 ? '#22c55e' : '#ef4444'">{{ formatUSD(purchasePnL(p).pnl) }}</div>
+                </td>
+                <td class="py-3 text-right">
+                  <button (click)="openEdit(p)" class="text-slate-500 hover:text-primary-400 text-xs">✎ Editar</button>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        </div>
+        <!-- Columna derecha: AI Advisor, contexto acotado a ESTE ETF (TAREA 11) -->
+        <div class="lg:col-span-1">
+          <app-ai-advisor-chat [symbol]="d.symbol" />
+        </div>
+        </div>
+
+        <!-- Noticias -->
+        @if (d.news.length > 0) {
+        <div class="bg-surface-800 rounded-2xl p-4">
+          <h2 class="text-white font-semibold mb-4 flex items-center gap-2">
+            <span>📰</span> Noticias de {{ d.symbol }}
+            <span class="text-xs text-slate-500 font-normal ml-1">— {{ d.news.length }} noticias</span>
+          </h2>
+          <div class="flex flex-col gap-3">
+            @for (item of d.news; track item.url) {
+            <a [href]="item.url" target="_blank" rel="noopener noreferrer"
+               class="border border-slate-700 rounded-xl p-3 hover:border-slate-600 transition-all group block">
+              <div class="flex items-start gap-3">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                    @if (item.sentimentScore != null) {
+                    <span class="text-xs font-semibold"
+                          [style.color]="item.sentimentScore > 0 ? '#22c55e' : item.sentimentScore < 0 ? '#ef4444' : '#94a3b8'">
+                      {{ item.sentimentScore > 0 ? '▲' : item.sentimentScore < 0 ? '▼' : '●' }}
+                      {{ item.sentimentScore.toFixed(2) }}
+                    </span>
+                    }
+                    <span class="text-slate-500 text-xs ml-auto">{{ formatNewsDate(item.publishedAt) }}</span>
+                  </div>
+                  <p class="text-white text-sm font-medium leading-snug group-hover:text-primary-400 transition-colors">
+                    {{ item.title }}
+                  </p>
+                  @if (item.summary) {
+                  <p class="text-slate-500 text-xs mt-1 line-clamp-2">{{ item.summary }}</p>
+                  }
+                </div>
+                <span class="text-slate-600 group-hover:text-primary-400 transition-colors text-sm mt-0.5 shrink-0">↗</span>
+              </div>
+            </a>
+            }
+          </div>
+        </div>
+        }
+
+      }
+    </main>
+
+    <!-- Modal: editar lote de compra -->
+    @if (purchaseToEdit(); as p) {
+    <div class="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4"
+        (click)="cancelEdit()">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md z-50 shadow-2xl p-6"
+            (click)="$event.stopPropagation()">
+
+          <h3 class="text-white font-bold text-lg mb-4">Editar compra</h3>
+
+          <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="flex flex-col gap-4">
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex flex-col gap-1">
+                <label class="text-sm text-slate-400">Cantidad</label>
+                <input formControlName="quantity" type="number" step="any"
+                       class="bg-slate-800 rounded-lg px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-sm text-slate-400">Precio de compra</label>
+                <input formControlName="buyPrice" type="number" step="any"
+                       class="bg-slate-800 rounded-lg px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-slate-400">Fecha de compra</label>
+              <input formControlName="purchaseDate" type="date"
+                     class="bg-slate-800 rounded-lg px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-slate-400">Broker</label>
+              <input formControlName="broker"
+                     class="bg-slate-800 rounded-lg px-4 py-2 text-white uppercase outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            @if (editError()) {
+              <p class="text-red-400 text-sm">{{ editError() }}</p>
+            }
+
+            <div class="flex gap-3 pt-2">
+              <button type="submit" [disabled]="editForm.invalid || editSaving()"
+                      class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 rounded-lg py-2 font-semibold text-white transition-colors">
+                {{ editSaving() ? 'Guardando...' : 'Guardar' }}
+              </button>
+              <button type="button" (click)="cancelEdit()"
+                      class="flex-1 bg-slate-700 hover:bg-slate-600 rounded-lg py-2 text-white transition-colors">
+                Cancelar
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+    </div>
+    }
+
+    <!-- Modal: agregar otra compra de este mismo activo (DCA) — Nombre/Symbol/AssetType/Broker ya
+         se conocen (este item), solo se pide lo que cambia entre compras. -->
+    @if (showAddPurchase()) {
+    <div class="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4"
+        (click)="cancelAddPurchase()">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md z-50 shadow-2xl p-6"
+            (click)="$event.stopPropagation()">
+
+          <h3 class="text-white font-bold text-lg mb-1">Agregar compra</h3>
+          <p class="text-slate-500 text-xs mb-4">{{ data()?.symbol }} · {{ data()?.name }} · {{ data()?.broker }}</p>
+
+          <form [formGroup]="addForm" (ngSubmit)="saveAddPurchase()" class="flex flex-col gap-4">
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex flex-col gap-1">
+                <label class="text-sm text-slate-400">Cantidad</label>
+                <input formControlName="quantity" type="number" step="any"
+                       class="bg-slate-800 rounded-lg px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-sm text-slate-400">Precio de compra</label>
+                <input formControlName="buyPrice" type="number" step="any"
+                       class="bg-slate-800 rounded-lg px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-slate-400">Fecha de compra</label>
+              <input formControlName="purchaseDate" type="date"
+                     class="bg-slate-800 rounded-lg px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-sm text-slate-400">Broker</label>
+              <input formControlName="broker"
+                     placeholder="ej: XTB, HAPI, Manual"
+                     class="bg-slate-800 rounded-lg px-4 py-2 text-white uppercase outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+
+            @if (addError()) {
+              <p class="text-red-400 text-sm">{{ addError() }}</p>
+            }
+
+            <div class="flex gap-3 pt-2">
+              <button type="submit" [disabled]="addForm.invalid || addSaving()"
+                      class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 rounded-lg py-2 font-semibold text-white transition-colors">
+                {{ addSaving() ? 'Guardando...' : 'Guardar' }}
+              </button>
+              <button type="button" (click)="cancelAddPurchase()"
+                      class="flex-1 bg-slate-700 hover:bg-slate-600 rounded-lg py-2 text-white transition-colors">
+                Cancelar
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+    </div>
+    }
+  </div>

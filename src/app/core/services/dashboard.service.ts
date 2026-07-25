@@ -12,7 +12,7 @@ import { HttpClient } from "@angular/common/http";
 @Injectable({ providedIn: 'root'})
 export class DashboardService {
     private readonly http = inject(HttpClient);
-    private readonly baseUrl = 'http://localhost:5070';
+    private readonly baseUrl = '';
 
     getDashboard(): Observable<DashboardResponse>{
         return this.http.get<DashboardResponse>(`${this.baseUrl}/api/dashboard`);
