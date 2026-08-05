@@ -13,7 +13,7 @@ import { InvestmentService } from "../../core/services/investment.service";
 import { NewsService } from "../../core/services/news.service";
 import { UserProfileService } from "../../core/services/user-profile.service";
 import { CongressionalTrade, DashboardResponse, InstitutionalMove, PriceHistoryPoint } from "./dashboard.models";
-import { buildAssetColorMap, PERIODS } from "./mock-portfolio.data";
+import { buildAssetColorMap, institutionDisplayName, PERIODS } from "./mock-portfolio.data";
 import { AddInvestmentComponent } from "./add-investment/add-investment.component";
 import { AiAdvisorChatComponent } from "../ai-advisor/ai-advisor-chat.component";
 import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-modal.component";
@@ -443,6 +443,10 @@ import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-mod
 
     formatQuarterDate(isoDate: string): string {
       return new Date(isoDate).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+    }
+
+    institutionDisplayName(name: string): string {
+      return institutionDisplayName(name);
     }
 
     // ★★★☆☆ — repite el carácter según el puntaje, sin puntaje = "sin evaluar todavía"

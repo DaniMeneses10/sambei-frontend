@@ -8,7 +8,7 @@
   import { CongressionalTrade, InstitutionalMove } from '../dashboard/dashboard.models';
   import { CongressMemberScore } from '../../core/models/congress-score.models';
   import { CongressScoreService } from '../../core/services/congress-score.service';
-  import { getAssetColor, PERIODS } from '../dashboard/mock-portfolio.data';
+  import { getAssetColor, institutionDisplayName, PERIODS } from '../dashboard/mock-portfolio.data';
   import { AiAdvisorChatComponent } from '../ai-advisor/ai-advisor-chat.component';
 
   @Component({
@@ -198,6 +198,10 @@
 
     formatQuarterDate(isoDate: string): string {
       return new Date(isoDate).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+    }
+
+    institutionDisplayName(name: string): string {
+      return institutionDisplayName(name);
     }
 
     starsLabel(starRating: number | null): string {

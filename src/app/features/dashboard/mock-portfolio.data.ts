@@ -63,3 +63,19 @@
   }
 
   export const PERIODS = ['1M', '3M', '6M', '1A', 'Todo'];
+
+  // F5: el 13F lo presenta el fondo, no la persona (ej. Warren Buffett declara a través de
+  // "Berkshire Hathaway", no a su nombre) — confundió a Daniel probando la app real ("no veo a
+  // Warren Buffett, solo veo 3"). Mapeo chico para mostrar el nombre de la persona al lado del
+  // fondo en el dropdown de filtro, sin tocar el dato real (institutionalMoves.investorName sigue
+  // siendo el nombre del fondo, que es el que usa el filtro/backend).
+  const INSTITUTION_PERSON: Record<string, string> = {
+      'Berkshire Hathaway': 'Warren Buffett',
+      'Bridgewater Associates': 'Ray Dalio',
+      'ARK Investment Management': 'Cathie Wood',
+  };
+
+  export function institutionDisplayName(institutionName: string): string {
+      const person = INSTITUTION_PERSON[institutionName];
+      return person ? `${institutionName} (${person})` : institutionName;
+  }

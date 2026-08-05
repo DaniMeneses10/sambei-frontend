@@ -250,7 +250,10 @@ Es la pantalla principal, con todas tus posiciones juntas.
 - Pasá el mouse por encima de una marca para ver un tooltip flotante con el nombre del
   institucional, la acción, la fecha del reporte trimestral y la cantidad de acciones declaradas.
 - **Filtro "🏛 Filtrar institucionales":** mismo mecanismo que el de congresistas — arranca **sin
-  nadie marcado a propósito**, con buscador, y "Seleccionar todos"/"Desmarcar todos".
+  nadie marcado a propósito**, con buscador, y "Seleccionar todos"/"Desmarcar todos". El nombre que
+  ves en la lista es el del fondo, con la persona conocida entre paréntesis (ej. "Berkshire
+  Hathaway (Warren Buffett)") — el 13F lo presenta legalmente el fondo, no la persona a título
+  personal, pero la app te muestra los dos juntos para que no haga falta saberlo de memoria.
 - Ver sección 8.3 para entender de dónde salen estos datos y cada cuánto se actualizan.
 
 ### 5.5 Noticias

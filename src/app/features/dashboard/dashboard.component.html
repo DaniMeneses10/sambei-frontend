@@ -195,7 +195,7 @@
                                               <input type="checkbox"
                                                   [checked]="isInstitutionActive(name)"
                                                   (change)="toggleInstitution(name)" />
-                                              {{ name }}
+                                              {{ institutionDisplayName(name) }}
                                           </label>
                                       }
                                       @if (!institutionOptions().length) {
@@ -259,7 +259,7 @@
                               class="fixed z-50 bg-surface-900 border border-slate-700 rounded-lg px-3 py-2 text-xs shadow-xl pointer-events-none"
                               [style.left.px]="h.x + 12"
                               [style.top.px]="h.y + 12">
-                              <p class="text-white font-semibold mb-1">{{ h.move.investorName }}</p>
+                              <p class="text-white font-semibold mb-1">{{ institutionDisplayName(h.move.investorName) }}</p>
                               <p class="text-slate-300">
                                   {{ institutionActionLabel(h.move.action) }}
                                   <span class="font-semibold">{{ h.move.symbol }}</span>
