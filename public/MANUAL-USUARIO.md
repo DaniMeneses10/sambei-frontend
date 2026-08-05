@@ -436,10 +436,14 @@ de las dos es una garantía — son señales con evidencia real detrás, no prom
 
 ### 9.4 Tus conversaciones no se guardan para siempre
 
-**Las conversaciones con el AI Advisor se borran automáticamente después de 3 días** — es una
-decisión a propósito, porque el contexto que usa el Advisor (precios, noticias, proyecciones) cambia
-día a día, y una respuesta vieja pierde sentido rápido. No hay forma de recuperar una conversación
-después de esa ventana. Esto aplica tanto al chat general como a los chats por activo.
+**Las conversaciones con el AI Advisor se borran automáticamente después de 40 días** — es una
+decisión a propósito: con ciclos de rebalanceo/reinversión mensuales, tiene sentido poder volver a
+mirar qué te dijo el Advisor "el mes pasado" antes de que se pierda, sin guardarlo para siempre (el
+contexto de precios/noticias/proyecciones igual queda desactualizado con el tiempo). No hay forma de
+recuperar una conversación después de esa ventana. Esto aplica tanto al chat general como a los
+chats por activo — cada mensaje individual se borra a los 40 días de haberse escrito (no del
+último mensaje del hilo), así que en una conversación larga los primeros mensajes pueden
+desaparecer antes que los últimos.
 
 ---
 
