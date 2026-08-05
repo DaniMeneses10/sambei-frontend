@@ -164,6 +164,10 @@ el que usa Yahoo Finance para buscar el precio. Dos casos reales:
   Ahí ponés Symbol = `BRKpB` (lo que vos reconocés, lo que se muestra en toda la app) y Provider
   Symbol = `BRK-B` (lo que se usa por detrás para buscar el precio real).
 
+**Si usás XTB:** tus extractos muestran instrumentos de Londres con el sufijo `.UK` (ej.
+`EIMI.UK`, `VWRA.UK`) — podés pegar ese Provider Symbol tal cual, sin traducirlo vos: la app lo
+convierte sola a `.L` (el formato que realmente entiende Yahoo Finance) antes de buscar el precio.
+
 Si tu activo no tiene este problema (la gran mayoría de acciones y ETFs americanos, y todo lo que es
 crypto), dejalo vacío.
 
