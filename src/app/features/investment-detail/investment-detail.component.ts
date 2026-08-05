@@ -8,7 +8,7 @@
   import { CongressionalTrade } from '../dashboard/dashboard.models';
   import { CongressMemberScore } from '../../core/models/congress-score.models';
   import { CongressScoreService } from '../../core/services/congress-score.service';
-  import { getAssetColor } from '../dashboard/mock-portfolio.data';
+  import { getAssetColor, PERIODS } from '../dashboard/mock-portfolio.data';
   import { AiAdvisorChatComponent } from '../ai-advisor/ai-advisor-chat.component';
 
   @Component({
@@ -36,7 +36,7 @@
     // 'Todo' por default: las compras reales suelen ser más viejas que 1 año — con cualquier otro
     // período por default, la barra de "fecha de compra" cae fuera de la ventana visible y no se ve.
     selectedPeriod   = signal('Todo');
-    readonly periods = ['1M', '3M', '6M', '1A', 'Todo'];
+    readonly periods = PERIODS;
 
     showBuyPoints     = signal(true);
     // Tooltip flotante al hover sobre una anotación de trade del Congreso — mismo mecanismo a mano

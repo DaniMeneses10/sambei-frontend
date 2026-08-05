@@ -1,6 +1,5 @@
 import { Component, EventEmitter, inject, OnDestroy, Output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common';
 import { debounceTime, distinctUntilChanged, of, Subscription, switchMap } from 'rxjs';
 import { InvestmentService } from '../../../core/services/investment.service';
 import { AssetNameService } from '../../../core/services/asset-name.service';
@@ -10,7 +9,7 @@ import { CreateInvestmentRequest } from '../../../core/models/investment.models'
 @Component({
   selector: 'app-add-investment',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './add-investment.component.html',
 })
 export class AddInvestmentComponent implements OnDestroy {

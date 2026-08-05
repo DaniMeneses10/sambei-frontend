@@ -60,21 +60,26 @@ export class AuthService {
         // silencio. El síntoma: el usuario escribía preguntas al AI Advisor que nunca llegaban
         // a guardarse (el middleware de auth corta el request ANTES de tocar el handler), así
         // que al recargar parecía que "los mensajes se borraban" — nunca habían existido.
-        if (this.isTokenExpired(token)) {
+        const payload = this.decodeToken(token);
+        if (!payload || payload.exp * 1000 < Date.now()) {
             localStorage.removeItem(this.TOKEN_KEY);
             return;
         }
 
-        // Token existe y sigue vigente — restauramos un usuario básico para mantener la sesión activa
-        this.currentUser.set({ token, email: '', expiresAt: '' });
+        // Token existe y sigue vigente — restauramos el usuario real desde el payload del JWT
+        // (antes quedaba email: '' hardcodeado, así que el navbar se veía en blanco tras cada reload)
+        this.currentUser.set({
+            token,
+            email: payload.email ?? '',
+            expiresAt: new Date(payload.exp * 1000).toISOString(),
+        });
     }
 
-    private isTokenExpired(token: string): boolean {
+    private decodeToken(token: string): { exp: number; email?: string } | null {
         try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            return payload.exp * 1000 < Date.now();
+            return JSON.parse(atob(token.split('.')[1]));
         } catch {
-            return true; // token ilegible — tratarlo como vencido, no como válido
+            return null; // token ilegible — tratarlo como inválido
         }
     }
 }
