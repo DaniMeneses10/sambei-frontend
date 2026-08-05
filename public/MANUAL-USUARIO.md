@@ -24,6 +24,7 @@ que Sambei sabe sale de fuentes reales y verificables:
 | Precios e historial de ETFs y acciones | Yahoo Finance |
 | Noticias financieras + sentimiento | Marketaux |
 | Trades reales de congresistas de EE.UU. | Cámara de Representantes (`disclosures-clerk.house.gov`, fuente oficial, STOCK Act) |
+| Holdings reales de inversores institucionales (Buffett, Dalio, Cathie Wood) | SEC EDGAR (Formulario 13F, fuente oficial) |
 | Proyección estadística de tendencia | Un modelo propio (ML.NET), entrenado con el historial real de cada símbolo |
 
 Nada se inventa. Si un dato no está disponible (por ejemplo, sentimiento de noticias para crypto, o
@@ -241,7 +242,18 @@ Es la pantalla principal, con todas tus posiciones juntas.
   - Tildar/destildar quiénes se muestran, uno por uno.
   - "Seleccionar todos" / "Desmarcar todos" para prender o apagar todas las estrellas de una.
 
-### 5.4 Noticias
+### 5.4 Inversores institucionales en el gráfico (🏛)
+
+- Marcan cuándo un inversor institucional grande (hoy: Berkshire Hathaway/Buffett, Bridgewater
+  Associates/Dalio, ARK Investment Management/Cathie Wood) **declaró tener, aumentó o redujo** una
+  posición en alguno de tus activos, en los últimos 365 días.
+- Pasá el mouse por encima de una marca para ver un tooltip flotante con el nombre del
+  institucional, la acción, la fecha del reporte trimestral y la cantidad de acciones declaradas.
+- **Filtro "🏛 Filtrar institucionales":** mismo mecanismo que el de congresistas — arranca **sin
+  nadie marcado a propósito**, con buscador, y "Seleccionar todos"/"Desmarcar todos".
+- Ver sección 8.3 para entender de dónde salen estos datos y cada cuánto se actualizan.
+
+### 5.5 Noticias
 
 Debajo del gráfico, las últimas noticias relacionadas con tus activos (todas mezcladas, sin filtrar
 por símbolo — para eso está la vista de detalle, sección 6). Cada noticia muestra:
@@ -253,13 +265,13 @@ por símbolo — para eso está la vista de detalle, sección 6). Cada noticia m
   activos de bolsa) — para BTC/ETH/etc. vas a ver noticias sin ese indicador, o directamente menos
   noticias.
 
-### 5.5 Estados de carga y error
+### 5.6 Estados de carga y error
 
 - Mientras carga el Dashboard la primera vez, ves un spinner animado.
 - Si algo falla al cargar (por ejemplo, una API externa no responde), ves un mensaje de error claro
   con un botón para reintentar — no una pantalla en blanco.
 
-### 5.6 Menú superior
+### 5.7 Menú superior
 
 - **"☰ Menú"** (dropdown): "📖 Manual de uso" (abre este mismo documento en una pestaña nueva) y
   "Salir" (cierra tu sesión).
@@ -290,7 +302,13 @@ Mismo mecanismo que el Dashboard (estrellas ★ verdes/rojas con tooltip al hove
 congresista con buscador), pero acá se muestra el **histórico completo**, no solo los últimos 365
 días — porque esta vista ya está enfocada en un solo activo, tiene sentido ver todo lo que hay.
 
-### 6.3 Tabla de compras (una fila por lote)
+### 6.3 Inversores institucionales de este activo
+
+Mismo mecanismo que el Dashboard (marcas 🏛 con tooltip al hover, mismo filtro por institucional
+con buscador), pero acá se muestra el **histórico completo** de ese símbolo, no solo los últimos
+365 días.
+
+### 6.4 Tabla de compras (una fila por lote)
 
 A diferencia del Dashboard (que agrupa todo en una fila con el promedio), acá ves **cada compra por
 separado**, ordenadas de la más reciente a la más vieja:
@@ -305,7 +323,7 @@ separado**, ordenadas de la más reciente a la más vieja:
 
 En mobile, esto se ve como una lista de tarjetas; en desktop, como una tabla.
 
-### 6.4 Editar una compra puntual
+### 6.5 Editar una compra puntual
 
 Botón **"✎ Editar"** en cada fila. Podés corregir:
 
@@ -322,11 +340,11 @@ Solo podés editar compras que sean tuyas — si por algún motivo intentaras ed
 (no hay forma de hacerlo desde la interfaz normal, pero el backend lo verifica igual), la app lo
 rechaza.
 
-### 6.5 Noticias de este activo
+### 6.6 Noticias de este activo
 
 Mismo tipo de tarjetas de noticias que el Dashboard, pero filtradas solo a este símbolo.
 
-### 6.6 AI Advisor de este activo
+### 6.7 AI Advisor de este activo
 
 Un chat dedicado a este activo puntual — ver sección 9.
 
@@ -376,6 +394,37 @@ Este es un cálculo real, no una opinión ni un ranking externo copiado de otro 
 
 Este recálculo se dispara manualmente (no corre solo en un horario fijo todavía) — si pasó mucho
 tiempo desde la última vez, los puntajes que ves pueden no incluir las compras más recientes.
+
+### 8.3 Inversores institucionales — de dónde salen los datos (🏛)
+
+Los fondos e inversores institucionales grandes de EE.UU. (más de $100 millones gestionados) están
+obligados por ley a declarar, **cada 3 meses**, todas sus posiciones en acciones — ese reporte se
+llama **Formulario 13F**, y es público y gratuito (SEC EDGAR, `data.sec.gov`, fuente oficial). Hoy
+Sambei rastrea 3:
+
+| Institucional | Quién está detrás |
+|---|---|
+| Berkshire Hathaway | Warren Buffett |
+| Bridgewater Associates | Ray Dalio |
+| ARK Investment Management | Cathie Wood |
+
+**Qué significa cada acción que ves marcada:**
+- **Compró** — la primera vez que ese institucional declara tener ese símbolo (en lo que Sambei
+  registró hasta ahora).
+- **Aumentó/redujo su posición** — comparado con el trimestre anterior que Sambei tiene guardado
+  de ese mismo institucional en ese mismo símbolo.
+
+**Una limitación real, a propósito no resuelta todavía:** el Formulario 13F solo lista las
+posiciones que un institucional tiene activas — si cierra una posición por completo, simplemente
+desaparece del reporte siguiente, no aparece con "0 acciones". Por eso Sambei hoy no muestra una
+acción de tipo "vendió todo" para institucionales (a diferencia de los congresistas, donde sí hay
+un tipo de transacción "Sell" explícito en el STOCK Act) — detectarlo con certeza requeriría un
+análisis más grande que compare símbolo por símbolo entre trimestres, pendiente para una vuelta
+futura.
+
+**Estos datos, igual que los del Congreso, no dependen de tu portfolio** — son hechos globales del
+mundo real, iguales para todos los usuarios de Sambei. El recálculo tampoco es automático — se
+dispara manualmente cada tanto (el 13F es trimestral, así que no hace falta revisarlo seguido).
 
 ---
 
@@ -464,11 +513,12 @@ construidas todavía. Esta lista está sincronizada con la cola de trabajo real 
   construir.)
 - **Los trades de congresistas son solo de la Cámara de Representantes**, no del Senado (ver sección
   8.1).
-- **No hay datos de inversores institucionales** (Buffett/Berkshire, Dalio/Bridgewater, Cathie
-  Wood/ARK vía SEC EDGAR) todavía — está diseñado pero no implementado. Esto también bloquea el
-  "Radar de Oportunidades" (alertas proactivas de qué comprar), que depende de esta pieza.
-  Mientras tanto, la sección de oportunidades del AI Advisor (9.1) usa solo la señal de
-  congresistas — es una primera versión real de esa idea, ya funcionando, no la versión completa.
+- **El AI Advisor todavía no usa la señal de inversores institucionales** (sección 8.3) para armar
+  su lista de oportunidades — hoy (sección 9.1) solo mira congresistas con buen puntaje. Sumar
+  institucionales a esa señal queda para una vuelta futura, no cambia nada de lo que ya funciona.
+- **"Radar de Oportunidades"** (alertas proactivas de "esto podrías comprar, mirá quién lo tiene")
+  — diseñado, ya no bloqueado técnicamente (las dos señales que necesita, congresistas e
+  institucionales, ya existen), pero todavía sin construir como feature propia con notificaciones.
 - **No podés cargar tu propia clave de API de Claude** todavía — el AI Advisor usa una clave
   compartida entre todos los usuarios. Para un uso con muchos usuarios reales esto está pendiente de
   resolver (diseño ya decidido: cada usuario va a poder configurar la suya, y sin una clave propia
