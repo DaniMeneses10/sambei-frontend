@@ -12,7 +12,7 @@ import { DashboardService } from "../../core/services/dashboard.service";
 import { InvestmentService } from "../../core/services/investment.service";
 import { NewsService } from "../../core/services/news.service";
 import { UserProfileService } from "../../core/services/user-profile.service";
-import { CongressionalTrade, DashboardResponse, PriceHistoryPoint } from "./dashboard.models";
+import { CongressionalTrade, DashboardResponse, InstitutionalMove, PriceHistoryPoint } from "./dashboard.models";
 import { buildAssetColorMap, PERIODS } from "./mock-portfolio.data";
 import { AddInvestmentComponent } from "./add-investment/add-investment.component";
 import { AiAdvisorChatComponent } from "../ai-advisor/ai-advisor-chat.component";
@@ -55,6 +55,13 @@ import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-mod
     showPoliticianMenu = signal(false);
     politicianSearch   = signal('');
 
+    // Inversores institucionales (F5) — mismo patrón que congresistas: arranca vacío a propósito
+    // (satura el gráfico si se muestran todos de entrada), filtro con buscador + seleccionar
+    // todos/ninguno. Sin puntaje (no hay concepto de "acierto a 3 meses" para 13F todavía).
+    activeInstitutions  = signal(new Set<string>());
+    showInstitutionMenu = signal(false);
+    institutionSearch   = signal('');
+
     // Perfil de riesgo del usuario (TAREA 14) — si es null, se abre el modal solo apenas carga el
     // Dashboard (no hay forma de cerrarlo sin elegir uno la primera vez). Con un botón para
     // cambiarlo después, ahí sí se puede cancelar sin tocar el que ya tenía.
@@ -72,6 +79,9 @@ import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-mod
     // soporta un tooltip nativo en anotaciones xaxis (confirmado: es un feature pedido pero no
     // resuelto en su repo), así que se arma a mano con los mouseEnter/mouseLeave del label.
     hoveredCongressTrade = signal<{ trade: CongressionalTrade; x: number; y: number } | null>(null);
+
+    // Mismo mecanismo de tooltip a mano, para las anotaciones 🏛 de inversores institucionales.
+    hoveredInstitutionalMove = signal<{ move: InstitutionalMove; x: number; y: number } | null>(null);
 
     readonly periods     = PERIODS;
 
@@ -128,6 +138,7 @@ import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-mod
           // Arranca vacío a propósito — con todos los congresistas marcados de entrada la gráfica
           // se satura. El usuario los activa desde el dropdown "⭐ Filtrar congresistas".
           this.activePoliticians.set(new Set());
+          this.activeInstitutions.set(new Set());
           this.loading.set(false);
           this.loadNews(data.investments.map(i => i.symbol));
         },
@@ -254,6 +265,30 @@ import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-mod
         });
       });
 
+      // Inversores institucionales (F5) — mismo mecanismo que los congresistas, ícono/color
+      // distintos (🏛, azul/naranja) para distinguirlos de un vistazo de las estrellas ★ del
+      // Congreso, pedido explícito de Daniel.
+      const activeInsts = this.activeInstitutions();
+      data.institutionalMoves.filter(m => active.has(m.symbol) && activeInsts.has(m.investorName)).forEach(m => {
+        const actionLabel = this.institutionActionLabel(m.action);
+        const color = m.action === 'DECREASED' ? '#f97316' : '#3b82f6';
+        xaxis.push({
+          x: new Date(m.quarterDate).getTime(),
+          borderColor: color,
+          borderWidth: 1,
+          strokeDashArray: 4,
+          label: {
+            borderColor: color,
+            text: `🏛 ${m.investorName} ${actionLabel} ${m.symbol}`,
+            style: { color: '#fff', background: color, fontSize: '9px',
+                     padding: { left: 4, right: 4, top: 2, bottom: 2 } },
+            mouseEnter: (_annotation: unknown, e: MouseEvent) =>
+              this.hoveredInstitutionalMove.set({ move: m, x: e.clientX, y: e.clientY }),
+            mouseLeave: () => this.hoveredInstitutionalMove.set(null)
+          }
+        });
+      });
+
       const yaxis = [{
         y: 0,
         borderColor: '#475569',
@@ -358,6 +393,58 @@ import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-mod
       this.activePoliticians.set(new Set());
     }
 
+    // Lista de institucionales para el dropdown — únicos, orden alfabético (sin puntaje, a
+    // diferencia de congresistas, no hay concepto de "acierto a 3 meses" para 13F todavía).
+    institutionOptions = computed(() => {
+      const data = this.dashboardData();
+      if (!data) return [];
+      return [...new Set(data.institutionalMoves.map(m => m.investorName))].sort();
+    });
+
+    filteredInstitutionOptions = computed(() => {
+      const query = this.institutionSearch().trim().toLowerCase();
+      const options = this.institutionOptions();
+      if (!query) return options;
+      return options.filter(name => name.toLowerCase().includes(query));
+    });
+
+    toggleInstitution(name: string): void {
+      this.activeInstitutions.update(set => {
+        const next = new Set(set);
+        next.has(name) ? next.delete(name) : next.add(name);
+        return next;
+      });
+    }
+
+    isInstitutionActive(name: string): boolean {
+      return this.activeInstitutions().has(name);
+    }
+
+    selectAllInstitutions(): void {
+      this.activeInstitutions.set(new Set(this.institutionOptions()));
+    }
+
+    selectNoneInstitutions(): void {
+      this.activeInstitutions.set(new Set());
+    }
+
+    institutionActionLabel(action: string): string {
+      switch (action) {
+        case 'BUY': return 'compró';
+        case 'INCREASED': return 'aumentó su posición en';
+        case 'DECREASED': return 'redujo su posición en';
+        default: return action.toLowerCase();
+      }
+    }
+
+    formatShares(shares: number): string {
+      return new Intl.NumberFormat('en-US').format(shares);
+    }
+
+    formatQuarterDate(isoDate: string): string {
+      return new Date(isoDate).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+    }
+
     // ★★★☆☆ — repite el carácter según el puntaje, sin puntaje = "sin evaluar todavía"
     starsLabel(starRating: number | null): string {
       if (starRating === null) return 'sin evaluar';
@@ -422,6 +509,7 @@ import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-mod
           // Arranca vacío a propósito — con todos los congresistas marcados de entrada la gráfica
           // se satura. El usuario los activa desde el dropdown "⭐ Filtrar congresistas".
           this.activePoliticians.set(new Set());
+          this.activeInstitutions.set(new Set());
           this.loading.set(false);
           this.loadNews(data.investments.map(i => i.symbol));
         },

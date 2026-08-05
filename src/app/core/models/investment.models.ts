@@ -1,5 +1,5 @@
   import { AssetType } from "./asset-type.enum";
-  import { CongressionalTrade, PriceHistoryPoint } from '../../features/dashboard/dashboard.models';
+  import { CongressionalTrade, InstitutionalMove, PriceHistoryPoint } from '../../features/dashboard/dashboard.models';
   import { NewsItem } from './news.models';
 
 
@@ -46,4 +46,5 @@ export interface InvestmentDetailResponse {
     news:         NewsItem[];
     purchases:    PurchaseEvent[];
     congressionalTrades: CongressionalTrade[];
+    institutionalMoves: InstitutionalMove[];
 }

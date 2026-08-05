@@ -5,7 +5,7 @@
   import { NgApexchartsModule } from 'ng-apexcharts';
   import { InvestmentService } from '../../core/services/investment.service';
   import { InvestmentDetailResponse, PurchaseEvent, CreateInvestmentRequest } from '../../core/models/investment.models';
-  import { CongressionalTrade } from '../dashboard/dashboard.models';
+  import { CongressionalTrade, InstitutionalMove } from '../dashboard/dashboard.models';
   import { CongressMemberScore } from '../../core/models/congress-score.models';
   import { CongressScoreService } from '../../core/services/congress-score.service';
   import { getAssetColor, PERIODS } from '../dashboard/mock-portfolio.data';
@@ -48,6 +48,12 @@
     activePoliticians   = signal(new Set<string>());
     showPoliticianMenu  = signal(false);
     politicianSearch    = signal('');
+
+    // Inversores institucionales (F5) — mismo mecanismo, sin puntaje.
+    hoveredInstitutionalMove = signal<{ move: InstitutionalMove; x: number; y: number } | null>(null);
+    activeInstitutions  = signal(new Set<string>());
+    showInstitutionMenu = signal(false);
+    institutionSearch   = signal('');
 
     // Modal de edición de un lote puntual — null = cerrado
     purchaseToEdit = signal<PurchaseEvent | null>(null);
@@ -92,6 +98,7 @@
           // Arranca vacío a propósito — con todos los congresistas marcados de entrada la gráfica
           // se satura (acá ni siquiera hay ventana de fecha, se trae el histórico completo).
           this.activePoliticians.set(new Set());
+          this.activeInstitutions.set(new Set());
           this.loading.set(false);
         },
         error: () => { this.error.set('No se pudo cargar el detalle.'); this.loading.set(false); }
@@ -140,6 +147,57 @@
 
     selectNonePoliticians(): void {
       this.activePoliticians.set(new Set());
+    }
+
+    // Institucionales (F5) — únicos, orden alfabético, sin puntaje.
+    institutionOptions = computed(() => {
+      const d = this.data();
+      if (!d) return [];
+      return [...new Set(d.institutionalMoves.map(m => m.investorName))].sort();
+    });
+
+    filteredInstitutionOptions = computed(() => {
+      const query = this.institutionSearch().trim().toLowerCase();
+      const options = this.institutionOptions();
+      if (!query) return options;
+      return options.filter(name => name.toLowerCase().includes(query));
+    });
+
+    toggleInstitution(name: string): void {
+      this.activeInstitutions.update(set => {
+        const next = new Set(set);
+        next.has(name) ? next.delete(name) : next.add(name);
+        return next;
+      });
+    }
+
+    isInstitutionActive(name: string): boolean {
+      return this.activeInstitutions().has(name);
+    }
+
+    selectAllInstitutions(): void {
+      this.activeInstitutions.set(new Set(this.institutionOptions()));
+    }
+
+    selectNoneInstitutions(): void {
+      this.activeInstitutions.set(new Set());
+    }
+
+    institutionActionLabel(action: string): string {
+      switch (action) {
+        case 'BUY': return 'compró';
+        case 'INCREASED': return 'aumentó su posición en';
+        case 'DECREASED': return 'redujo su posición en';
+        default: return action.toLowerCase();
+      }
+    }
+
+    formatShares(shares: number): string {
+      return new Intl.NumberFormat('en-US').format(shares);
+    }
+
+    formatQuarterDate(isoDate: string): string {
+      return new Date(isoDate).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
     }
 
     starsLabel(starRating: number | null): string {
@@ -233,6 +291,33 @@
                 mouseEnter: (_annotation: unknown, e: MouseEvent) =>
                   this.hoveredCongressTrade.set({ trade: t, x: e.clientX, y: e.clientY }),
                 mouseLeave: () => this.hoveredCongressTrade.set(null)
+              }
+            });
+          });
+      }
+
+      // Inversores institucionales (F5, 13F) — mismo mecanismo, ícono/color distintos (🏛,
+      // azul/naranja) para diferenciarlos de un vistazo de las estrellas ★ del Congreso.
+      {
+        const activeInsts = this.activeInstitutions();
+        d.institutionalMoves
+          .filter(m => activeInsts.has(m.investorName) && filtered.some(pt => pt.date >= m.quarterDate.substring(0, 10)))
+          .forEach(m => {
+            const actionLabel = this.institutionActionLabel(m.action);
+            const color = m.action === 'DECREASED' ? '#f97316' : '#3b82f6';
+            xaxis.push({
+              x: new Date(m.quarterDate).getTime(),
+              borderColor: color,
+              borderWidth: 1,
+              strokeDashArray: 4,
+              label: {
+                borderColor: color,
+                text: `🏛 ${m.investorName} ${actionLabel}`,
+                style: { color: '#fff', background: color, fontSize: '9px',
+                         padding: { left: 4, right: 4, top: 2, bottom: 2 } },
+                mouseEnter: (_annotation: unknown, e: MouseEvent) =>
+                  this.hoveredInstitutionalMove.set({ move: m, x: e.clientX, y: e.clientY }),
+                mouseLeave: () => this.hoveredInstitutionalMove.set(null)
               }
             });
           });

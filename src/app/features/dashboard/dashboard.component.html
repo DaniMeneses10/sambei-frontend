@@ -167,6 +167,45 @@
                                   </div>
                               }
                           </div>
+
+                          <!-- Filtro por inversor institucional (F5, 13F) — mismo mecanismo que el
+                               de congresistas, sin puntaje (no hay concepto de "acierto a 3 meses"
+                               para 13F todavía). -->
+                          <div class="relative">
+                              <button
+                                  (click)="showInstitutionMenu.set(!showInstitutionMenu())"
+                                  [ngClass]="showInstitutionMenu() ? 'border-primary-400 text-primary-400' : 'border-slate-700 text-slate-600'"
+                                  class="px-3 py-1 rounded-full border text-xs transition-all">
+                                  🏛 Filtrar institucionales
+                              </button>
+                              @if (showInstitutionMenu()) {
+                                  <div class="absolute z-20 mt-2 w-64 max-h-72 overflow-y-auto rounded-lg border border-slate-700 bg-slate-900 p-2 shadow-xl">
+                                      <input
+                                          type="text"
+                                          placeholder="Buscar institucional..."
+                                          [value]="institutionSearch()"
+                                          (input)="institutionSearch.set($any($event.target).value)"
+                                          class="w-full mb-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-slate-500" />
+                                      <div class="flex justify-between gap-2 px-2 pb-2 mb-1 border-b border-slate-800">
+                                          <button (click)="selectAllInstitutions()" class="text-xs text-primary-400 hover:underline">Seleccionar todos</button>
+                                          <button (click)="selectNoneInstitutions()" class="text-xs text-slate-500 hover:underline">Desmarcar todos</button>
+                                      </div>
+                                      @for (name of filteredInstitutionOptions(); track name) {
+                                          <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-800 cursor-pointer text-xs text-slate-300">
+                                              <input type="checkbox"
+                                                  [checked]="isInstitutionActive(name)"
+                                                  (change)="toggleInstitution(name)" />
+                                              {{ name }}
+                                          </label>
+                                      }
+                                      @if (!institutionOptions().length) {
+                                          <p class="text-xs text-slate-500 px-2 py-1.5">Sin holdings institucionales todavía.</p>
+                                      } @else if (!filteredInstitutionOptions().length) {
+                                          <p class="text-xs text-slate-500 px-2 py-1.5">Sin resultados para "{{ institutionSearch() }}".</p>
+                                      }
+                                  </div>
+                              }
+                          </div>
                       </div>
 
                       <!-- Selector de período -->
@@ -211,6 +250,23 @@
                               <p class="text-slate-400 mt-1">{{ formatTradeDate(h.trade.date) }}</p>
                               <p class="text-slate-400">Rango declarado: {{ h.trade.amount }}</p>
                               <p class="text-slate-500 text-[10px] mt-1 italic">El STOCK Act reporta rangos, no montos exactos.</p>
+                          </div>
+                      }
+
+                      <!-- Tooltip flotante al hacer hover sobre un holding institucional (F5, 13F) -->
+                      @if (hoveredInstitutionalMove(); as h) {
+                          <div
+                              class="fixed z-50 bg-surface-900 border border-slate-700 rounded-lg px-3 py-2 text-xs shadow-xl pointer-events-none"
+                              [style.left.px]="h.x + 12"
+                              [style.top.px]="h.y + 12">
+                              <p class="text-white font-semibold mb-1">{{ h.move.investorName }}</p>
+                              <p class="text-slate-300">
+                                  {{ institutionActionLabel(h.move.action) }}
+                                  <span class="font-semibold">{{ h.move.symbol }}</span>
+                              </p>
+                              <p class="text-slate-400 mt-1">{{ formatQuarterDate(h.move.quarterDate) }}</p>
+                              <p class="text-slate-400">{{ formatShares(h.move.shares) }} acciones declaradas</p>
+                              <p class="text-slate-500 text-[10px] mt-1 italic">Formulario 13F — SEC EDGAR, reporte trimestral.</p>
                           </div>
                       }
 
