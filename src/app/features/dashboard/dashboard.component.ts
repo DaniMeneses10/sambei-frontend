@@ -17,11 +17,10 @@ import { buildAssetColorMap, PERIODS } from "./mock-portfolio.data";
 import { AddInvestmentComponent } from "./add-investment/add-investment.component";
 import { AiAdvisorChatComponent } from "../ai-advisor/ai-advisor-chat.component";
 import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-modal.component";
-import { ManualModalComponent } from "./manual-modal/manual-modal.component";
 
   @Component({
     selector: 'app-dashboard',
-    imports: [NgApexchartsModule, NgClass, AddInvestmentComponent, AiAdvisorChatComponent, RiskProfileModalComponent, ManualModalComponent],
+    imports: [NgApexchartsModule, NgClass, AddInvestmentComponent, AiAdvisorChatComponent, RiskProfileModalComponent],
     templateUrl: './dashboard.component.html',
   })
   export class DashboardComponent {
@@ -64,9 +63,10 @@ import { ManualModalComponent } from "./manual-modal/manual-modal.component";
     readonly riskProfileOptions = RISK_PROFILE_OPTIONS;
 
     // Dropdown de usuario (reemplaza el botón "Salir" suelto) — mismo patrón simple que el dropdown
-    // de congresistas, sin detección de click afuera.
+    // de congresistas, sin detección de click afuera. "Manual de uso" es un link directo a
+    // /MANUAL-USUARIO.md (servido como estático desde public/) — un único archivo, sin una versión
+    // resumida aparte que pueda quedar desincronizada del real.
     showUserMenu   = signal(false);
-    showManualModal = signal(false);
 
     // Tooltip flotante al hacer hover sobre una anotación de trade del Congreso — ApexCharts no
     // soporta un tooltip nativo en anotaciones xaxis (confirmado: es un feature pedido pero no

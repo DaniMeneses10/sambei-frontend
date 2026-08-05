@@ -27,11 +27,14 @@
                     </button>
                     @if (showUserMenu()) {
                     <div class="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-slate-700 bg-slate-900 p-1.5 shadow-xl">
-                        <button
-                            (click)="showUserMenu.set(false); showManualModal.set(true)"
-                            class="w-full text-left px-3 py-2 rounded text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+                        <a
+                            href="/MANUAL-USUARIO.md"
+                            target="_blank"
+                            rel="noopener"
+                            (click)="showUserMenu.set(false)"
+                            class="block w-full text-left px-3 py-2 rounded text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
                             📖 Manual de uso
-                        </button>
+                        </a>
                         <button
                             (click)="logout()"
                             class="w-full text-left px-3 py-2 rounded text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
@@ -421,18 +424,6 @@
                   [current]="riskProfile()"
                   (saved)="saveRiskProfile($event)"
                   (cancel)="showRiskProfileModal.set(false)" />
-            </div>
-        </div>
-        }
-
-      <!-- Modal: manual de uso — a diferencia del de perfil de riesgo, este sí cierra con click en
-           el backdrop, no hay ninguna elección obligatoria acá. -->
-        @if (showManualModal()) {
-        <div class="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4"
-            (click)="showManualModal.set(false)">
-            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto z-50 shadow-2xl"
-                (click)="$event.stopPropagation()">
-              <app-manual-modal (cancel)="showManualModal.set(false)" />
             </div>
         </div>
         }
