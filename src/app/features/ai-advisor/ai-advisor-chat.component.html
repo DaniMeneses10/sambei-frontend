@@ -38,7 +38,7 @@
             (keydown.enter)="send()"
             [disabled]="sending()"
             [placeholder]="symbol ? 'Preguntale sobre ' + symbol + '...' : 'Preguntale al Advisor...'"
-            class="flex-1 bg-surface-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-primary-500" />
+            class="flex-1 bg-surface-900 border border-slate-700 rounded-xl px-3 py-2 text-[16px] lg:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-primary-500" />
         <button
             (click)="send()"
             [disabled]="sending() || !question().trim()"

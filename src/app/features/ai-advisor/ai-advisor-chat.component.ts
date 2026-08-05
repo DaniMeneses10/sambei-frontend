@@ -23,12 +23,20 @@ export class AiAdvisorChatComponent implements OnInit {
     sending = signal(false);
     error = signal<string | null>(null);
 
+    // Cuántos mensajes había la última vez que hicimos scroll — para distinguir "apareció un
+    // mensaje nuevo" (sí hay que scrollear) de "el último mensaje creció un chunk más" (no hay
+    // que scrollear). Sin esto, cada chunk del streaming arrastraba la vista hacia abajo, así
+    // que al terminar una respuesta larga quedabas viendo el final, no el principio — pedido de
+    // Daniel: que quede fijo en el punto donde arrancó a responder, se lee de arriba hacia abajo.
+    private lastMessageCount = 0;
+
     constructor() {
-        // Se dispara con el historial inicial, cada pregunta nueva y cada chunk del streaming —
-        // el chat siempre queda mostrando el último mensaje, sin que el usuario tenga que scrollear.
         effect(() => {
-            this.messages();
-            queueMicrotask(() => this.scrollToBottom());
+            const msgs = this.messages();
+            if (msgs.length !== this.lastMessageCount) {
+                this.lastMessageCount = msgs.length;
+                queueMicrotask(() => this.scrollToBottom());
+            }
         });
     }
 
