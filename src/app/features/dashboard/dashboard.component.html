@@ -28,9 +28,7 @@
                     @if (showUserMenu()) {
                     <div class="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-slate-700 bg-slate-900 p-1.5 shadow-xl">
                         <a
-                            href="/MANUAL-USUARIO.md"
-                            target="_blank"
-                            rel="noopener"
+                            routerLink="/manual"
                             (click)="showUserMenu.set(false)"
                             class="block w-full text-left px-3 py-2 rounded text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
                             📖 Manual de uso

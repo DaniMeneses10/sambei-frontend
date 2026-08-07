@@ -7,8 +7,9 @@ sincronizada con la cola de tareas real del proyecto (`CLAUDE.md`) — si algo n
 como funcionando, es porque todavía no existe.
 
 > **Este es el único manual que existe** — dentro de la app, el menú "☰ Menú" → "📖 Manual de uso"
-> abre este mismo archivo en una pestaña nueva. No hay una versión resumida aparte: mantener un solo
-> archivo evita que las dos versiones diverjan con el tiempo.
+> te lleva a una página propia (`/manual`) que renderiza este mismo archivo. No hay una versión
+> resumida ni un componente con contenido copiado aparte: mantener un solo archivo fuente evita que
+> las versiones diverjan con el tiempo.
 
 ---
 

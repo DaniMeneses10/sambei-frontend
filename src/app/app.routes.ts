@@ -39,6 +39,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/investment-detail/investment-detail.component').then(m => m.InvestmentDetailComponent)
     },
     {
+        path: 'manual',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/manual/manual.component').then(m => m.ManualComponent)
+    },
+    {
         path: '**',
         redirectTo: '/auth/login'
     }

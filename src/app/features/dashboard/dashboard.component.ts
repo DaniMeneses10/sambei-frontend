@@ -1,6 +1,6 @@
 import { NgClass } from "@angular/common";
 import { Component, computed, inject, signal } from "@angular/core";
-import { Router } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { NgApexchartsModule } from "ng-apexcharts";
 import { forkJoin } from "rxjs";
 import { NewsItem } from "../../core/models/news.models";
@@ -22,7 +22,7 @@ import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.compon
 
   @Component({
     selector: 'app-dashboard',
-    imports: [NgApexchartsModule, NgClass, AddInvestmentComponent, AiAdvisorChatComponent, RiskProfileModalComponent, WatcherTabComponent, AdminUsersTabComponent],
+    imports: [NgApexchartsModule, NgClass, RouterLink, AddInvestmentComponent, AiAdvisorChatComponent, RiskProfileModalComponent, WatcherTabComponent, AdminUsersTabComponent],
     templateUrl: './dashboard.component.html',
   })
   export class DashboardComponent {
