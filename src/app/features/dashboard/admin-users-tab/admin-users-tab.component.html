@@ -1,0 +1,58 @@
+<div class="bg-surface-800 rounded-2xl p-4">
+    <h2 class="text-white font-semibold mb-4 flex items-center gap-2">
+        <span>👤</span> Usuarios
+    </h2>
+
+    @if (loading()) {
+        <p class="text-slate-500 text-sm">Cargando usuarios…</p>
+    } @else if (error()) {
+        <p class="text-danger text-sm">{{ error() }}</p>
+    } @else {
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-slate-500 text-xs border-b border-slate-700">
+                        <th class="text-left pb-2">Usuario</th>
+                        <th class="text-center pb-2">Admin</th>
+                        <th class="text-center pb-2">Activo</th>
+                        <th class="text-center pb-2">Plus</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (u of users(); track u.userId) {
+                        <tr class="border-b border-slate-700/50">
+                            <td class="py-3">
+                                <div class="text-white font-medium">{{ u.firstName }} {{ u.lastName }}</div>
+                                <div class="text-slate-500 text-xs">{{ u.email }}</div>
+                            </td>
+                            <td class="py-3 text-center">
+                                @if (u.isAdmin) {
+                                    <span class="text-primary-400 text-xs">★ Admin</span>
+                                }
+                            </td>
+                            <td class="py-3 text-center">
+                                <button
+                                    (click)="toggleActive(u)"
+                                    [disabled]="isSelf(u) || savingUserId() === u.userId"
+                                    [title]="isSelf(u) ? 'No podés desactivar tu propia cuenta' : ''"
+                                    [ngClass]="u.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'"
+                                    class="px-3 py-1 rounded-full text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+                                    {{ u.isActive ? 'Activo' : 'Inactivo' }}
+                                </button>
+                            </td>
+                            <td class="py-3 text-center">
+                                <button
+                                    (click)="togglePlus(u)"
+                                    [disabled]="savingUserId() === u.userId"
+                                    [ngClass]="u.isPlus ? 'bg-primary-500/20 text-primary-400' : 'bg-slate-700 text-slate-400'"
+                                    class="px-3 py-1 rounded-full text-xs font-semibold disabled:opacity-40 transition-all">
+                                    {{ u.isPlus ? 'Plus' : 'Free' }}
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

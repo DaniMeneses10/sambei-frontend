@@ -16,11 +16,13 @@ import { CongressionalTrade, DashboardResponse, InstitutionalMove, PriceHistoryP
 import { buildAssetColorMap, institutionDisplayName, PERIODS } from "./mock-portfolio.data";
 import { AddInvestmentComponent } from "./add-investment/add-investment.component";
 import { AiAdvisorChatComponent } from "../ai-advisor/ai-advisor-chat.component";
-import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-modal.component";
+import { RiskProfileModalComponent, RiskProfileSaveEvent } from "./risk-profile-modal/risk-profile-modal.component";
+import { WatcherTabComponent } from "./watcher-tab/watcher-tab.component";
+import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.component";
 
   @Component({
     selector: 'app-dashboard',
-    imports: [NgApexchartsModule, NgClass, AddInvestmentComponent, AiAdvisorChatComponent, RiskProfileModalComponent],
+    imports: [NgApexchartsModule, NgClass, AddInvestmentComponent, AiAdvisorChatComponent, RiskProfileModalComponent, WatcherTabComponent, AdminUsersTabComponent],
     templateUrl: './dashboard.component.html',
   })
   export class DashboardComponent {
@@ -66,7 +68,12 @@ import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-mod
     // Dashboard (no hay forma de cerrarlo sin elegir uno la primera vez). Con un botón para
     // cambiarlo después, ahí sí se puede cancelar sin tocar el que ya tenía.
     riskProfile         = signal<RiskProfile | null>(null);
+    targetReturnPct     = signal<number | null>(null); // solo con riskProfile === ObjetivoRetorno
     showRiskProfileModal = signal(false);
+
+    // Tabs del dashboard (2026-08-07) — Watcher (Admin/Plus) y Usuarios (solo Admin). Portfolio
+    // es el contenido de siempre, sin cambios funcionales.
+    activeTab = signal<'portfolio' | 'watcher' | 'admin'>('portfolio');
     readonly riskProfileOptions = RISK_PROFILE_OPTIONS;
 
     // Dropdown de usuario (reemplaza el botón "Salir" suelto) — mismo patrón simple que el dropdown
@@ -159,6 +166,7 @@ import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-mod
       this.profileSvc.getRiskProfile().subscribe({
         next: res => {
           this.riskProfile.set(res.riskProfile);
+          this.targetReturnPct.set(res.targetReturnPct);
           if (res.riskProfile === null) this.showRiskProfileModal.set(true);
         },
         error: () => {}
@@ -167,13 +175,18 @@ import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-mod
 
     riskProfileLabel(profile: RiskProfile | null): string {
       if (profile === null) return 'Sin definir';
+      if (profile === RiskProfile.ObjetivoRetorno) {
+        const target = this.targetReturnPct();
+        return target ? `≥${target}% anual` : 'Objetivo de retorno';
+      }
       return this.riskProfileOptions.find(o => o.value === profile)?.label ?? 'Sin definir';
     }
 
-    saveRiskProfile(profile: RiskProfile): void {
-      this.profileSvc.setRiskProfile(profile).subscribe({
+    saveRiskProfile(event: RiskProfileSaveEvent): void {
+      this.profileSvc.setRiskProfile(event.riskProfile, event.targetReturnPct).subscribe({
         next: () => {
-          this.riskProfile.set(profile);
+          this.riskProfile.set(event.riskProfile);
+          this.targetReturnPct.set(event.targetReturnPct ?? null);
           this.showRiskProfileModal.set(false);
         },
         error: () => {} // el modal se queda abierto, el usuario puede reintentar
@@ -271,7 +284,9 @@ import { RiskProfileModalComponent } from "./risk-profile-modal/risk-profile-mod
       const activeInsts = this.activeInstitutions();
       data.institutionalMoves.filter(m => active.has(m.symbol) && activeInsts.has(m.investorName)).forEach(m => {
         const actionLabel = this.institutionActionLabel(m.action);
-        const color = m.action === 'DECREASED' ? '#f97316' : '#3b82f6';
+        // Mismo criterio verde/rojo que los congresistas (TAREA 10.1) — lo que distingue
+        // institucionales de congresistas es el ícono (🏛 vs ★), no el color.
+        const color = m.action === 'DECREASED' ? '#ef4444' : '#22c55e';
         xaxis.push({
           x: new Date(m.quarterDate).getTime(),
           borderColor: color,

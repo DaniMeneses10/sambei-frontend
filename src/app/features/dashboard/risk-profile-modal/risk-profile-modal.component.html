@@ -25,6 +25,22 @@
         </div>
         <p class="text-sm text-slate-300 mt-1">{{ opt.description }}</p>
         <p class="text-xs text-slate-500 mt-1">{{ opt.example }}</p>
+
+        @if (opt.value === ObjetivoRetorno && selected() === ObjetivoRetorno) {
+          <div class="mt-3 flex items-center gap-2" (click)="$event.stopPropagation()">
+            <label class="text-xs text-slate-400">Retorno anual objetivo:</label>
+            <input
+                type="number"
+                min="1"
+                step="0.5"
+                [ngModel]="targetReturnPct()"
+                (ngModelChange)="targetReturnPct.set($event)"
+                placeholder="ej: 15"
+                class="w-20 bg-surface-900 border border-slate-700 rounded-lg px-2 py-1 text-sm text-white
+                       focus:outline-none focus:border-primary-500" />
+            <span class="text-xs text-slate-400">% anual</span>
+          </div>
+        }
       </button>
     }
   </div>
@@ -32,7 +48,7 @@
   <div class="flex gap-3 pt-2">
     <button type="button"
             (click)="confirm()"
-            [disabled]="selected() === null"
+            [disabled]="!isValid"
             class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-40
                    rounded-lg py-2 font-semibold text-white transition-colors">
       Guardar

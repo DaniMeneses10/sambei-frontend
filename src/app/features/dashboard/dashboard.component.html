@@ -48,7 +48,39 @@
 
       <!-- Contenido principal -->
       <main class="p-4 lg:p-6">
-        @if (loading()) {
+
+        <!-- Tabs (2026-08-07) — solo aparecen si hay más de uno para elegir (Admin/Plus). Un
+             usuario normal nunca ve esta barra, va directo al Portfolio de siempre. -->
+        @if (authService.isAdmin() || authService.isPlus()) {
+        <div class="flex gap-2 mb-4">
+            <button
+                (click)="activeTab.set('portfolio')"
+                [ngClass]="activeTab() === 'portfolio' ? 'bg-primary-500 text-white' : 'text-slate-500 hover:text-slate-300 border border-slate-700'"
+                class="px-4 py-1.5 rounded-xl text-sm font-medium transition-all">
+                📊 Portfolio
+            </button>
+            <button
+                (click)="activeTab.set('watcher')"
+                [ngClass]="activeTab() === 'watcher' ? 'bg-primary-500 text-white' : 'text-slate-500 hover:text-slate-300 border border-slate-700'"
+                class="px-4 py-1.5 rounded-xl text-sm font-medium transition-all">
+                🔭 Watcher
+            </button>
+            @if (authService.isAdmin()) {
+            <button
+                (click)="activeTab.set('admin')"
+                [ngClass]="activeTab() === 'admin' ? 'bg-primary-500 text-white' : 'text-slate-500 hover:text-slate-300 border border-slate-700'"
+                class="px-4 py-1.5 rounded-xl text-sm font-medium transition-all">
+                👤 Usuarios
+            </button>
+            }
+        </div>
+        }
+
+        @if (activeTab() === 'watcher') {
+            <app-watcher-tab></app-watcher-tab>
+        } @else if (activeTab() === 'admin') {
+            <app-admin-users-tab></app-admin-users-tab>
+        } @else if (loading()) {
             <div class="min-h-[60vh] flex flex-col items-center justify-center gap-4">
                 <div class="relative w-16 h-16">
                     <div class="absolute inset-0 rounded-full border-4 border-slate-700"></div>
@@ -478,6 +510,7 @@
                 (click)="$event.stopPropagation()">
               <app-risk-profile-modal
                   [current]="riskProfile()"
+                  [currentTargetReturnPct]="targetReturnPct()"
                   (saved)="saveRiskProfile($event)"
                   (cancel)="showRiskProfileModal.set(false)" />
             </div>

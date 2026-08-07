@@ -1,0 +1,63 @@
+<div class="bg-surface-800 rounded-2xl p-4">
+    <h2 class="text-white font-semibold mb-1 flex items-center gap-2">
+        <span>🔭</span> Watcher — oportunidades que no tenés
+    </h2>
+    <p class="text-slate-500 text-xs mb-4">
+        Activos con actividad reciente de congresistas/institucionales de buen historial, rankeados
+        por crecimiento histórico real (no por qué tan reciente fue la compra). Señal descriptiva,
+        no una recomendación de compra.
+    </p>
+
+    @if (loading()) {
+        <p class="text-slate-500 text-sm">Cargando candidatos…</p>
+    } @else if (error()) {
+        <p class="text-danger text-sm">{{ error() }}</p>
+    } @else if (candidates().length === 0) {
+        <p class="text-slate-500 text-sm">Todavía no hay candidatos suficientes — hace falta más historial de congresistas/institucionales o de precios.</p>
+    } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            @for (c of candidates(); track c.symbol) {
+                <div class="border border-slate-700 rounded-xl p-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-white font-bold">{{ c.symbol }}</span>
+                        <span class="text-slate-300 text-sm">{{ formatUSD(c.currentPrice) }}</span>
+                    </div>
+
+                    <apx-chart
+                        [series]="seriesFor(c)"
+                        [chart]="chartConfig.chart"
+                        [stroke]="chartConfig.stroke"
+                        [xaxis]="chartConfig.xaxis"
+                        [yaxis]="chartConfig.yaxis"
+                        [grid]="chartConfig.grid"
+                        [tooltip]="chartConfig.tooltip"
+                        [legend]="chartConfig.legend"
+                        [theme]="chartConfig.theme"
+                        [colors]="chartConfig.colors" />
+
+                    @if (bestGrowth(c); as g) {
+                        <div class="flex items-center justify-between mt-1">
+                            <span class="text-slate-500 text-xs">Últimos ~{{ g.actualYears.toFixed(1) }} años</span>
+                            <span class="text-xs font-semibold" [style.color]="g.cagrPct >= 0 ? '#22c55e' : '#ef4444'">
+                                {{ formatPercent(g.cagrPct) }}/año
+                            </span>
+                        </div>
+                    }
+
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        @for (b of c.congressBuyers; track b.name) {
+                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-400">
+                                ★ {{ b.name }}
+                            </span>
+                        }
+                        @for (name of c.institutionalBuyers; track name) {
+                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-primary-500/10 text-primary-400">
+                                🏛 {{ name }}
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

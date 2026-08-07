@@ -308,7 +308,9 @@
           .filter(m => activeInsts.has(m.investorName) && filtered.some(pt => pt.date >= m.quarterDate.substring(0, 10)))
           .forEach(m => {
             const actionLabel = this.institutionActionLabel(m.action);
-            const color = m.action === 'DECREASED' ? '#f97316' : '#3b82f6';
+            // Mismo criterio verde/rojo que los congresistas — el ícono (🏛 vs ★) es lo que
+            // distingue la fuente, no el color.
+            const color = m.action === 'DECREASED' ? '#ef4444' : '#22c55e';
             xaxis.push({
               x: new Date(m.quarterDate).getTime(),
               borderColor: color,
