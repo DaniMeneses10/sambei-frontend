@@ -1,5 +1,6 @@
 import { Component, effect, ElementRef, inject, Input, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { marked } from 'marked';
 import { AdvisorMessage } from '../../core/models/advisor.models';
 import { AiAdvisorService } from '../../core/services/ai-advisor.service';
 
@@ -54,6 +55,15 @@ export class AiAdvisorChatComponent implements OnInit, OnDestroy {
     private scrollToBottom(): void {
         const el = this.messagesContainer?.nativeElement;
         if (el) el.scrollTop = el.scrollHeight;
+    }
+
+    // Bug real (2026-08-07, reportado por Daniel): el Advisor responde con markdown (headers,
+    // negritas, tablas) porque Claude lo genera por defecto, pero el chat lo imprimía como texto
+    // plano — los ##, ** y | quedaban literales en pantalla. [innerHTML] sanitiza automáticamente
+    // (Angular lo hace por default, sin bypassSecurityTrustHtml) así que sigue siendo seguro pegar
+    // texto generado por el AI acá.
+    renderMarkdown(content: string): string {
+        return marked.parse(content, { breaks: true, async: false }) as string;
     }
 
     async ngOnInit() {
