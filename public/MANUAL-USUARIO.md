@@ -126,6 +126,11 @@ Tres opciones, cada una con una descripción y un ejemplo concreto (no una pregu
 | **Conservador** | Preferís estabilidad antes que rendimiento | Mayormente ETFs diversificados como VOO/QQQ, poco o nada en acciones individuales o crypto |
 | **Básico** | Un balance entre crecimiento y estabilidad | ETFs como base, con una porción menor en acciones individuales o Bitcoin |
 | **Arriesgado** | Buscás mayor crecimiento y tolerás más volatilidad | Más peso en acciones individuales y crypto, aunque sea menos diversificado |
+| **Objetivo de retorno** | No elegís una etiqueta — declarás el % anual que buscás (ej. 15) | El Advisor te muestra, con números reales, qué activos históricamente llegaron a ese % o más — y qué volatilidad hizo falta tolerar para lograrlo |
+
+**Sobre "Objetivo de retorno":** un retorno alto y "seguro" a la vez no existe en mercados reales —
+el Advisor nunca te lo va a prometer. Lo que sí hace es cruzar tu objetivo contra el crecimiento
+histórico real de cada candidato y ser honesto sobre el riesgo que implicó cada uno.
 
 Una vez elegido, podés cambiarlo cuando quieras con el botón **"⚙ Perfil: {tu perfil actual}"**
 arriba del Dashboard — ahí sí aparece la opción de cancelar sin cambiar nada.
@@ -246,7 +251,9 @@ Es la pantalla principal, con todas tus posiciones juntas.
 
 - Marcan cuándo un inversor institucional grande (hoy: Berkshire Hathaway/Buffett, Bridgewater
   Associates/Dalio, ARK Investment Management/Cathie Wood) **declaró tener, aumentó o redujo** una
-  posición en alguno de tus activos, en los últimos 365 días.
+  posición en alguno de tus activos, en los últimos 365 días. **Verde** = compró o aumentó, **rojo**
+  = redujo — mismo criterio de colores que las estrellas de congresistas; el ícono 🏛 (en vez de ★)
+  es lo que distingue que la señal viene de un institucional, no de un congresista.
 - Pasá el mouse por encima de una marca para ver un tooltip flotante con el nombre del
   institucional, la acción, la fecha del reporte trimestral y la cantidad de acciones declaradas.
 - **Filtro "🏛 Filtrar institucionales":** mismo mecanismo que el de congresistas — arranca **sin
@@ -455,11 +462,13 @@ página de detalle):
 
 **Si hacés una pregunta general** ("en qué invierto", "qué me conviene", sin mencionar un símbolo):
 - Tu portfolio completo, si tenés inversiones cargadas.
-- **Siempre, además**, una lista de oportunidades — activos comprados recientemente por congresistas
-  con buen puntaje (4-5★), pre-filtrados por actividad reciente y **ordenados por crecimiento
-  histórico real**, no por qué tan reciente fue la compra del congresista. Esto pasa **siempre** que
-  la pregunta es general, tengas o no tengas inversiones cargadas — no hace falta que aclares "dame
-  las más rentables", el sistema ya prioriza así por defecto.
+- **Siempre, además**, una lista de oportunidades — activos comprados/aumentados recientemente por
+  congresistas con buen puntaje (4-5★) **o** por inversores institucionales grandes (sección 8.3),
+  pre-filtrados por actividad reciente y **ordenados por crecimiento histórico real**, no por qué tan
+  reciente fue la compra. Esto pasa **siempre** que la pregunta es general, tengas o no tengas
+  inversiones cargadas — no hace falta que aclares "dame las más rentables", el sistema ya prioriza
+  así por defecto. Estos mismos candidatos también se pueden explorar visualmente, con gráfico, en el
+  tab Watcher (sección 10.1) si tu cuenta tiene acceso.
 
 **En cualquiera de los dos casos:** tu perfil de riesgo (sección 2) se usa para adaptar la respuesta,
 y el Advisor **nunca te lo vuelve a preguntar** una vez que ya lo elegiste.
@@ -499,7 +508,36 @@ desaparecer antes que los últimos.
 
 ---
 
-## 10. Cosas que Sambei todavía NO hace
+## 10. El tab Watcher y el panel de Admin (no todos lo ven)
+
+El Dashboard puede tener hasta 3 pestañas arriba, según tu tipo de cuenta:
+
+- **📊 Portfolio** — lo de siempre, lo ve todo el mundo.
+- **🔭 Watcher** — solo si tu cuenta es **Admin** o **Plus**.
+- **👤 Usuarios** — solo si tu cuenta es **Admin**.
+
+Si tu cuenta es normal (la mayoría), no ves ninguna pestaña extra — el Dashboard se ve exactamente
+igual que siempre. Hoy no hay forma de pedir Plus vos mismo (no hay pago todavía) — lo otorga el
+Admin desde el panel de Usuarios.
+
+### 10.1 Watcher — los mismos candidatos del Advisor, con gráfico
+
+Una card por activo candidato (los mismos que arma el AI Advisor para sus "oportunidades", sección
+9.1): gráfico de precio, crecimiento histórico real (CAGR), y quién lo compró — congresistas (★) e
+institucionales (🏛). Es para explorar sin comprometerte a nada: estos activos no están en tu
+portfolio ni afectan tu P&L, es solo señal descriptiva.
+
+### 10.2 Usuarios — solo para el Admin
+
+Lista de todas las cuentas registradas, con dos controles por usuario:
+
+- **Activo/Inactivo** — desactivar a alguien le corta el acceso real en el próximo pedido que haga a
+  la app (no es cosmético, es inmediato). El Admin no puede desactivarse a sí mismo.
+- **Plus/Free** — le da acceso al tab Watcher a ese usuario.
+
+---
+
+## 11. Cosas que Sambei todavía NO hace
 
 Para que no las busques de más — están planeadas (algunas ya diseñadas en detalle) pero no
 construidas todavía. Esta lista está sincronizada con la cola de trabajo real del proyecto:
@@ -511,17 +549,15 @@ construidas todavía. Esta lista está sincronizada con la cola de trabajo real 
   Si vendiste algo, hoy la única opción es borrar la inversión completa. Tampoco hay forma de
   eliminar un solo lote de compra puntual (sí podés editarlo) — solo se puede borrar el símbolo
   entero desde el Dashboard.
-- **No distingue "lo que tengo" de "lo que estoy vigilando sin comprar"** — todo lo que cargás cuenta
-  como comprado y entra en el cálculo de P&L total. (Feature "Portfolio vs Watchlist", diseñada, sin
-  construir.)
+- **No distingue "lo que tengo" de "lo que estoy vigilando sin comprar"** en tu propio portfolio —
+  todo lo que cargás cuenta como comprado y entra en el cálculo de P&L total. (Feature "Portfolio vs
+  Watchlist", diseñada, sin construir — distinta del tab Watcher de la sección 10.1, que muestra
+  candidatos globales sugeridos por la app, no símbolos que vos elegís seguir a mano.)
 - **Los trades de congresistas son solo de la Cámara de Representantes**, no del Senado (ver sección
   8.1).
-- **El AI Advisor todavía no usa la señal de inversores institucionales** (sección 8.3) para armar
-  su lista de oportunidades — hoy (sección 9.1) solo mira congresistas con buen puntaje. Sumar
-  institucionales a esa señal queda para una vuelta futura, no cambia nada de lo que ya funciona.
-- **"Radar de Oportunidades"** (alertas proactivas de "esto podrías comprar, mirá quién lo tiene")
-  — diseñado, ya no bloqueado técnicamente (las dos señales que necesita, congresistas e
-  institucionales, ya existen), pero todavía sin construir como feature propia con notificaciones.
+- **"Radar de Oportunidades" con notificaciones proactivas** ("avisame solo cuando aparezca algo
+  nuevo", sin que tengas que entrar a mirar) — el tab Watcher (sección 10.1) ya te deja explorar esos
+  candidatos a mano, pero avisos automáticos todavía no existen.
 - **No podés cargar tu propia clave de API de Claude** todavía — el AI Advisor usa una clave
   compartida entre todos los usuarios. Para un uso con muchos usuarios reales esto está pendiente de
   resolver (diseño ya decidido: cada usuario va a poder configurar la suya, y sin una clave propia
@@ -543,7 +579,7 @@ construidas todavía. Esta lista está sincronizada con la cola de trabajo real 
 
 ---
 
-## 11. Notas sueltas que conviene saber
+## 12. Notas sueltas que conviene saber
 
 - **ETFs europeos (EIMI, VWCE, CNDX...) muestran su último día con un día de retraso** en el
   gráfico, comparado con activos americanos — es porque esas bolsas (Londres, Xetra) publican su
