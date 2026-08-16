@@ -62,8 +62,18 @@ export class AiAdvisorChatComponent implements OnInit, OnDestroy {
     // plano — los ##, ** y | quedaban literales en pantalla. [innerHTML] sanitiza automáticamente
     // (Angular lo hace por default, sin bypassSecurityTrustHtml) así que sigue siendo seguro pegar
     // texto generado por el AI acá.
+    // Modo directivo (2026-08-15): cuando el Advisor da recomendaciones concretas, agrega un bloque
+    // [SAMBEI_REC]...[/SAMBEI_REC] al final para que el backend lo capture (ver
+    // AdvisorRecommendationParser) — es un detalle interno, nunca algo que el usuario tenga que leer.
+    // El backend ya lo guarda limpio en el historial, pero durante el streaming en vivo el chunk
+    // final todavía puede traerlo (o el bloque a medio escribir) antes de que el backend termine de
+    // procesarlo — se filtra acá para que nunca se vea, ni completo ni a medio renderizar.
+    private stripRecommendationBlock(content: string): string {
+        return content.replace(/\[SAMBEI_REC\][\s\S]*?(\[\/SAMBEI_REC\]|$)/gi, '').trimEnd();
+    }
+
     renderMarkdown(content: string): string {
-        return marked.parse(content, { breaks: true, async: false }) as string;
+        return marked.parse(this.stripRecommendationBlock(content), { breaks: true, async: false }) as string;
     }
 
     async ngOnInit() {

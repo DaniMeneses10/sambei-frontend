@@ -6,6 +6,7 @@ import { RiskProfile } from '../models/risk-profile.enum';
 export interface RiskProfileResponse {
     riskProfile: RiskProfile | null; // null = todavía no eligió ninguno
     targetReturnPct: number | null;  // solo con riskProfile === ObjetivoRetorno
+    targetPositionCount: number | null; // cantidad máxima de posiciones que quiere sostener (2026-08-15, opcional)
 }
 
 @Injectable({ providedIn: 'root' })
@@ -17,7 +18,7 @@ export class UserProfileService {
         return this.http.get<RiskProfileResponse>(this.baseUrl);
     }
 
-    setRiskProfile(riskProfile: RiskProfile, targetReturnPct?: number): Observable<void> {
-        return this.http.put<void>(this.baseUrl, { riskProfile, targetReturnPct });
+    setRiskProfile(riskProfile: RiskProfile, targetReturnPct?: number, targetPositionCount?: number): Observable<void> {
+        return this.http.put<void>(this.baseUrl, { riskProfile, targetReturnPct, targetPositionCount });
     }
 }

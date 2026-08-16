@@ -419,6 +419,7 @@
 
               <!-- Columna derecha: AI Advisor -->
               <div class="lg:col-span-1">
+                  <app-advisor-alerts></app-advisor-alerts>
                   <app-ai-advisor-chat></app-ai-advisor-chat>
               </div>
 
@@ -509,6 +510,7 @@
               <app-risk-profile-modal
                   [current]="riskProfile()"
                   [currentTargetReturnPct]="targetReturnPct()"
+                  [currentTargetPositionCount]="targetPositionCount()"
                   (saved)="saveRiskProfile($event)"
                   (cancel)="showRiskProfileModal.set(false)" />
             </div>

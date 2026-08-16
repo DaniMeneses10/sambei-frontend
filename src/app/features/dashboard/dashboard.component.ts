@@ -16,13 +16,14 @@ import { CongressionalTrade, DashboardResponse, InstitutionalMove, PriceHistoryP
 import { buildAssetColorMap, institutionDisplayName, PERIODS } from "./mock-portfolio.data";
 import { AddInvestmentComponent } from "./add-investment/add-investment.component";
 import { AiAdvisorChatComponent } from "../ai-advisor/ai-advisor-chat.component";
+import { AdvisorAlertsComponent } from "../ai-advisor/advisor-alerts.component";
 import { RiskProfileModalComponent, RiskProfileSaveEvent } from "./risk-profile-modal/risk-profile-modal.component";
 import { WatcherTabComponent } from "./watcher-tab/watcher-tab.component";
 import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.component";
 
   @Component({
     selector: 'app-dashboard',
-    imports: [NgApexchartsModule, NgClass, RouterLink, AddInvestmentComponent, AiAdvisorChatComponent, RiskProfileModalComponent, WatcherTabComponent, AdminUsersTabComponent],
+    imports: [NgApexchartsModule, NgClass, RouterLink, AddInvestmentComponent, AiAdvisorChatComponent, AdvisorAlertsComponent, RiskProfileModalComponent, WatcherTabComponent, AdminUsersTabComponent],
     templateUrl: './dashboard.component.html',
   })
   export class DashboardComponent {
@@ -69,6 +70,7 @@ import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.compon
     // cambiarlo después, ahí sí se puede cancelar sin tocar el que ya tenía.
     riskProfile         = signal<RiskProfile | null>(null);
     targetReturnPct     = signal<number | null>(null); // solo con riskProfile === ObjetivoRetorno
+    targetPositionCount = signal<number | null>(null); // cantidad máxima de posiciones (opcional, 2026-08-15)
     showRiskProfileModal = signal(false);
 
     // Tabs del dashboard (2026-08-07) — Watcher (Admin/Plus) y Usuarios (solo Admin). Portfolio
@@ -167,6 +169,7 @@ import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.compon
         next: res => {
           this.riskProfile.set(res.riskProfile);
           this.targetReturnPct.set(res.targetReturnPct);
+          this.targetPositionCount.set(res.targetPositionCount);
           if (res.riskProfile === null) this.showRiskProfileModal.set(true);
         },
         error: () => {}
@@ -183,10 +186,11 @@ import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.compon
     }
 
     saveRiskProfile(event: RiskProfileSaveEvent): void {
-      this.profileSvc.setRiskProfile(event.riskProfile, event.targetReturnPct).subscribe({
+      this.profileSvc.setRiskProfile(event.riskProfile, event.targetReturnPct, event.targetPositionCount).subscribe({
         next: () => {
           this.riskProfile.set(event.riskProfile);
           this.targetReturnPct.set(event.targetReturnPct ?? null);
+          this.targetPositionCount.set(event.targetPositionCount ?? null);
           this.showRiskProfileModal.set(false);
         },
         error: () => {} // el modal se queda abierto, el usuario puede reintentar

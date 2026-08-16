@@ -6,6 +6,7 @@ import { RISK_PROFILE_OPTIONS, RiskProfile, RiskProfileOption } from '../../../c
 export interface RiskProfileSaveEvent {
     riskProfile: RiskProfile;
     targetReturnPct?: number;
+    targetPositionCount?: number;
 }
 
 @Component({
@@ -18,6 +19,7 @@ export class RiskProfileModalComponent implements OnInit {
     // Perfil actual (si ya tenía uno elegido, para resaltarlo al reabrir el modal para cambiarlo).
     @Input() current: RiskProfile | null = null;
     @Input() currentTargetReturnPct: number | null = null;
+    @Input() currentTargetPositionCount: number | null = null;
     @Output() saved = new EventEmitter<RiskProfileSaveEvent>();
     @Output() cancel = new EventEmitter<void>();
 
@@ -25,11 +27,13 @@ export class RiskProfileModalComponent implements OnInit {
     readonly ObjetivoRetorno = RiskProfile.ObjetivoRetorno;
     selected = signal<RiskProfile | null>(null);
     targetReturnPct = signal<number | null>(null);
+    targetPositionCount = signal<number | null>(null);
 
     // El @Input llega después del constructor — inicializar el signal acá, no en el field initializer.
     ngOnInit(): void {
         this.selected.set(this.current);
         this.targetReturnPct.set(this.currentTargetReturnPct);
+        this.targetPositionCount.set(this.currentTargetPositionCount);
     }
 
     select(option: RiskProfileOption): void {
@@ -50,6 +54,7 @@ export class RiskProfileModalComponent implements OnInit {
         this.saved.emit({
             riskProfile: this.selected()!,
             targetReturnPct: this.selected() === RiskProfile.ObjetivoRetorno ? this.targetReturnPct()! : undefined,
+            targetPositionCount: this.targetPositionCount() ?? undefined,
         });
     }
 }

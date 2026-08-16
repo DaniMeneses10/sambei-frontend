@@ -1,11 +1,25 @@
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { AdvisorMessage } from '../models/advisor.models';
+import { Observable } from 'rxjs';
+import { AdvisorAlert, AdvisorMessage } from '../models/advisor.models';
 import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class AiAdvisorService {
     private readonly authService = inject(AuthService);
+    private readonly http = inject(HttpClient);
     private readonly baseUrl = '/api/ai';
+
+    // GET /api/ai/recommendations/alerts — auto-detección (2026-08-15). A diferencia de
+    // getHistory/sendMessage (streaming SSE, por eso usan fetch a mano), esto es un JSON simple —
+    // usa HttpClient como el resto de los servicios del proyecto.
+    getPendingAlerts(): Observable<AdvisorAlert[]> {
+        return this.http.get<AdvisorAlert[]>(`${this.baseUrl}/recommendations/alerts`);
+    }
+
+    dismissRecommendation(id: string): Observable<void> {
+        return this.http.post<void>(`${this.baseUrl}/recommendations/${id}/dismiss`, {});
+    }
 
     // Este servicio usa fetch() a mano (para el streaming SSE), no HttpClient — no pasa por
     // authInterceptor, así que un 401 (token vencido) necesita el mismo logout() acá aparte.
