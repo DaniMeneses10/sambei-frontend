@@ -1,6 +1,7 @@
 import { Component, inject, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
+import { HttpErrorResponse } from "@angular/common/http";
 import { CardComponent } from "../../../shared/card/card.component";
 import { ButtonComponent } from "../../../shared/button/button.component";
 import { InputComponent } from "../../../shared/input/input.component";
@@ -38,8 +39,12 @@ export class LoginComponent {
                 this.authService.saveSession(response);
                 this.router.navigate(['/dashboard']);
             },
-            error: (err) => {
-                this.error.set('Email o Contraseña Incorrectos');
+            error: (err: HttpErrorResponse) => {
+                this.error.set(
+                    err.status === 401
+                        ? 'Email o Contraseña Incorrectos'
+                        : 'Error del servidor, intentá de nuevo en unos segundos'
+                );
                 this.loading.set(false);
             }
         })
