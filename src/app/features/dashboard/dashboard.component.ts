@@ -203,7 +203,14 @@ import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.compon
     totalProfitPercent = computed(() => this.dashboardData()?.totalPnLPercent ?? 0);
     isWinning = computed(() => this.totalProfit() >= 0);
 
+    // Umbral de concentración (2026-08-16, mismo criterio que ConcentrationThresholdPct del
+    // Advisor — ver BuildAdvisorContextService.cs) — visual acá, el freno real que le saca la
+    // opción de reforzar al Advisor vive en el backend, esto es solo para que se vea siempre en
+    // el dashboard, no solo cuando el Advisor descarta un candidato.
+    readonly concentrationThresholdPct = 30;
+
     get positions() {
+      const total = this.totalValue();
       return (this.dashboardData()?.investments ?? []).map(inv => ({
         id:               inv.id,
         symbol:           inv.symbol,
@@ -213,6 +220,7 @@ import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.compon
         openPrice:        inv.buyPrice,
         currentPrice:     inv.currentPrice,
         value:            inv.currentValue,
+        weightPercent:    total > 0 ? (inv.currentValue / total) * 100 : 0,
         netProfit:        inv.pnL,
         netProfitPercent: inv.pnLPercent
       })).sort((a, b) => b.netProfitPercent - a.netProfitPercent);

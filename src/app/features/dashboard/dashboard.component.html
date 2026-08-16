@@ -334,6 +334,7 @@
                                       <th class="text-right pb-2">Precio actual</th>
                                       <th class="text-right pb-2">Cantidad</th>
                                       <th class="text-right pb-2">Valor</th>
+                                      <th class="text-right pb-2">% Portfolio</th>
                                       <th class="text-right pb-2">Ganancia / Pérdida</th>
                                   </tr>
                               </thead>
@@ -355,6 +356,15 @@
                                           <td class="py-3 text-right text-white">{{ formatUSD(pos.currentPrice) }}</td>
                                           <td class="py-3 text-right text-slate-400">{{ pos.volume }}</td>
                                           <td class="py-3 text-right text-white font-medium">{{ formatUSD(pos.value) }}</td>
+                                          <td class="py-3 text-right">
+                                              <span [class.text-amber-400]="pos.weightPercent >= concentrationThresholdPct"
+                                                    [class.text-slate-400]="pos.weightPercent < concentrationThresholdPct">
+                                                  {{ formatPercent(pos.weightPercent) }}
+                                              </span>
+                                              @if (pos.weightPercent >= concentrationThresholdPct) {
+                                                  <span class="text-amber-400" title="Posición concentrada">⚠</span>
+                                              }
+                                          </td>
                                           <td class="py-3 text-right">
                                               <div [style.color]="pos.netProfit >= 0 ? '#22c55e' : '#ef4444'" class="font-semibold">
                                                   {{ formatPercent(pos.netProfitPercent) }}
@@ -397,7 +407,7 @@
                                           </button>
                                       </div>
                                   </div>
-                                  <div class="grid grid-cols-3 gap-2 text-xs">
+                                  <div class="grid grid-cols-2 gap-2 text-xs">
                                       <div>
                                           <div class="text-slate-500">Compra</div>
                                           <div class="text-slate-300">{{ formatUSD(pos.openPrice) }}</div>
@@ -409,6 +419,14 @@
                                       <div>
                                           <div class="text-slate-500">Valor</div>
                                           <div class="text-white">{{ formatUSD(pos.value) }}</div>
+                                      </div>
+                                      <div>
+                                          <div class="text-slate-500">% Portfolio</div>
+                                          <div [class.text-amber-400]="pos.weightPercent >= concentrationThresholdPct"
+                                               [class.text-white]="pos.weightPercent < concentrationThresholdPct">
+                                              {{ formatPercent(pos.weightPercent) }}
+                                              @if (pos.weightPercent >= concentrationThresholdPct) { ⚠ }
+                                          </div>
                                       </div>
                                   </div>
                               </div>
