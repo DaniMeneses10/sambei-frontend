@@ -34,9 +34,11 @@ algo inventado.
 
 **Filosofía de inversión:** Sambei está pensada para inversores pasivos de largo plazo (estrategia
 DCA — Dollar Cost Averaging: comprar de a poco, con constancia, en vez de intentar acertarle al
-momento exacto de entrar o salir del mercado). Esto no es solo un consejo de marketing — está
-metido como regla dura en el AI Advisor (sección 9): nunca te va a decir "comprá ahora" ni "vendé
-ahora".
+momento exacto de entrar o salir del mercado). El AI Advisor (sección 9) hoy sí te puede sugerir
+compras/ventas concretas con montos — es un modo directivo habilitado a propósito para este grupo
+chico de usuarios, con frenos reales para que no te empuje a decisiones peligrosas (nunca a
+concentrar demasiado en un solo activo, nunca a acumular decenas de posiciones sueltas). Ver sección
+9.3 para el detalle exacto de qué SÍ y qué NO hace hoy.
 
 ---
 
@@ -136,6 +138,12 @@ histórico real de cada candidato y ser honesto sobre el riesgo que implicó cad
 Una vez elegido, podés cambiarlo cuando quieras con el botón **"⚙ Perfil: {tu perfil actual}"**
 arriba del Dashboard — ahí sí aparece la opción de cancelar sin cambiar nada.
 
+**Cantidad máxima de posiciones (opcional):** en el mismo modal, un campo aparte donde podés
+declarar cuántas posiciones distintas como máximo querés sostener en tu portfolio (ej. 8). Si lo
+completás, el Advisor va a evitar sugerirte sumar un activo nuevo por encima de ese número sin
+decirte antes qué vender para hacer lugar — pensado para no terminar con una cartera de 30-50
+posiciones sueltas. Si lo dejás vacío, no aplica ningún límite.
+
 **Qué hace la app con esto:** cada vez que le preguntás algo al AI Advisor, tu perfil se le agrega
 al contexto automáticamente. El Advisor tiene la instrucción explícita de **nunca volver a
 preguntarte tu perfil de riesgo, horizonte o tolerancia una vez que ya lo declaraste** — solo lo
@@ -220,6 +228,9 @@ Es la pantalla principal, con todas tus posiciones juntas.
   está rindiendo mejor.
 - Arriba, un resumen con el total invertido, el valor actual de todo tu portfolio, y la
   ganancia/pérdida total en dólares y en porcentaje.
+- **Columna "% Portfolio":** cuánto pesa cada posición sobre el valor total actual de tu cartera.
+  Si una posición llega al 30% o más, aparece resaltada en color ámbar con un ⚠ — mismo límite que
+  usa el AI Advisor para dejar de sugerirte que la refuerces más (sección 9.3).
 
 ### 5.2 El gráfico
 
@@ -462,7 +473,8 @@ página de detalle):
 - El crecimiento histórico real de largo plazo (1/3/5 años), si hay suficiente historia (sección 9.2).
 
 **Si hacés una pregunta general** ("en qué invierto", "qué me conviene", sin mencionar un símbolo):
-- Tu portfolio completo, si tenés inversiones cargadas.
+- Tu portfolio completo, si tenés inversiones cargadas — con el peso % de cada posición (mismo dato
+  que la columna del Dashboard, sección 5.1).
 - **Siempre, además**, una lista de oportunidades — activos comprados/aumentados recientemente por
   congresistas con buen puntaje (4-5★) **o** por inversores institucionales grandes (sección 8.3),
   pre-filtrados por actividad reciente y **ordenados por crecimiento histórico real**, no por qué tan
@@ -470,6 +482,13 @@ página de detalle):
   inversiones cargadas — no hace falta que aclares "dame las más rentables", el sistema ya prioriza
   así por defecto. Estos mismos candidatos también se pueden explorar visualmente, con gráfico, en el
   tab Watcher (sección 10.1) si tu cuenta tiene acceso.
+- **Una posición que ya pesa 30% o más de tu portfolio se excluye de esta lista de oportunidades** —
+  aunque tenga el mejor historial de todos, el Advisor no va a recibir la información necesaria para
+  sugerirte reforzarla (ver sección 9.3, "Freno de concentración").
+- **Cada candidato nuevo que no tenés en tu portfolio viene con una ficha**, no solo el ticker:
+  nombre real de la empresa/fondo, rubro (ej. "Restaurants, sector Consumer Cyclical"), su
+  crecimiento histórico real, quién lo compró recientemente, y por qué aparece en la lista — para
+  que nunca tengas que adivinar qué es un símbolo que no reconocés.
 
 **En cualquiera de los dos casos:** tu perfil de riesgo (sección 2) se usa para adaptar la respuesta,
 y el Advisor **nunca te lo vuelve a preguntar** una vez que ya lo elegiste.
@@ -487,16 +506,49 @@ el Advisor tiene instrucciones explícitas de no hacerlo:
 El Advisor siempre te aclara cuál de las dos está usando cuando te responde, y remarca que ninguna
 de las dos es una garantía — son señales con evidencia real detrás, no promesas.
 
-### 9.3 Lo que el Advisor NO hace (reglas duras, no sugerencias)
+### 9.3 Qué SÍ hace y qué NO hace el Advisor (actualizado 2026-08-16)
 
-- **Nunca te dice "comprá ahora" ni "vendé ahora"** en el sentido de timing de mercado — su rol es
-  analizar y explicar con datos, la decisión final siempre es tuya. Esto está en su configuración
-  base, no es que "se le puede escapar" según la pregunta.
+**Modo directivo — sí te puede decir qué comprar/vender, con montos concretos.** A diferencia de
+versiones anteriores de Sambei, hoy el Advisor puede terminar una respuesta con algo tan concreto
+como "vendé VWRA.UK completa, comprá $650 en NVDA". Siempre tiene que estar anclado a los datos
+reales del contexto (histórico, congresistas/institucionales, proyección) — nunca es una
+corazonada, y nunca te promete que algo es "seguro". La decisión de actuar (y cuándo) siempre es
+tuya — el Advisor no ejecuta nada.
+
+**Por qué existe este modo, y hasta cuándo:** es una decisión explícita para este grupo chico de
+usuarios (hoy 3 personas) que lo pidieron así. **No es la filosofía final de Sambei** — si la app
+se abre a más usuarios en el futuro, este modo se va a revisar antes de exponerlo a público general
+(dar instrucciones concretas de compra/venta se acerca a asesoría financiera regulada).
+
+**Los frenos reales que sí existen, garantizados aunque el Advisor "se olvide":**
+- **Freno de concentración:** una posición que ya pesa 30% o más de tu portfolio queda excluida de
+  las sugerencias de compra — el Advisor ni siquiera recibe la información para argumentar a favor
+  de reforzarla más. Si se lo pedís directamente, tiene que explicarte el % real y ofrecerte
+  alternativas, no ceder sin más. Este es el freno que evita terminar con todo apostado a un solo
+  activo — si ese activo cae fuerte un día, no se lleva puesto todo tu portfolio.
+- **Límite de cantidad de posiciones** (si lo declaraste, sección 2): no te va a empujar a sumar un
+  símbolo nuevo por encima de tu objetivo sin decirte qué vender antes para hacer lugar.
+- **Nombre y ficha de cada símbolo nuevo:** garantizado que aparezca, no depende de que el Advisor
+  se acuerde de mencionarlo (sección 9.1).
+
+**Lo que sigue sin hacer:**
 - **No ejecuta ninguna operación** — es un chat de análisis, no un bróker. No puede comprar, vender,
-  ni mover dinero.
-- Responde siempre en español, de forma concisa.
+  ni mover dinero real. Todo lo que "compra/vende" en la conversación es una sugerencia — la acción
+  real la hacés vos en tu bróker, y después la reflejás en Sambei (sección 3/4).
+- Responde siempre en español, de forma concisa salvo que la pregunta pida explícitamente un plan de
+  acción paso a paso (ahí puede estructurarse con tablas o listas).
 
-### 9.4 Tus conversaciones no se guardan para siempre
+### 9.4 Si le hacés caso a una sugerencia, Sambei se da cuenta solo
+
+No hace falta confirmarle nada al Advisor. Cuando creás o borrás una inversión en la app, Sambei
+compara automáticamente contra las últimas recomendaciones concretas que te dio (mismo símbolo,
+misma dirección — comprar/vender) — si coinciden, la marca sola como "seguida" y te avisa con un
+cartel chico arriba del chat del Dashboard: **"Sambei notó que compraste/vendiste X"**. Si fue una
+falsa alarma (compraste por otra razón, no por ese consejo), hay un link "no fue por eso" para
+corregirlo. Esto es la base de que, más adelante, el Advisor pueda aprender de si sus consejos
+salieron bien o mal con el tiempo (todavía no evalúa el resultado, solo lo registra — sección 11).
+
+### 9.5 Tus conversaciones no se guardan para siempre
 
 **Las conversaciones con el AI Advisor se borran automáticamente después de 40 días** — es una
 decisión a propósito: con ciclos de rebalanceo/reinversión mensuales, tiene sentido poder volver a
@@ -575,8 +627,10 @@ construidas todavía. Esta lista está sincronizada con la cola de trabajo real 
   para el plan completo. Lo que sí existe hoy (oportunidades por congresistas + crecimiento
   histórico + proyección de tendencia, sección 9.1) es la primera versión real y funcionando de esa
   misma idea, a mucha menor escala.
-- **No hay una evaluación automática de si las señales que citó el Advisor "acertaron" con el
-  tiempo** — diseñado (captura de qué vio el Advisor en cada respuesta), sin implementar.
+- **El Advisor todavía no evalúa si sus propias recomendaciones salieron bien o mal.** Ya sabe qué
+  te recomendó y se da cuenta solo si le hiciste caso (sección 9.4), pero falta la parte de comparar
+  eso contra el precio real después de un tiempo y usar ese resultado para conversaciones futuras —
+  diseñado, sin implementar todavía.
 
 ---
 
