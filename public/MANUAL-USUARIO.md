@@ -231,6 +231,15 @@ Es la pantalla principal, con todas tus posiciones juntas.
 - **Columna "% Portfolio":** cuánto pesa cada posición sobre el valor total actual de tu cartera.
   Si una posición llega al 30% o más, aparece resaltada en color ámbar con un ⚠ — mismo límite que
   usa el AI Advisor para dejar de sugerirte que la refuerces más (sección 9.3).
+- **Columna "Ganancia/Pérdida":** ahora muestra también, chico y debajo del monto, **desde cuándo**
+  se está contando esa ganancia (ej. "desde ago 2024") — es el total acumulado desde que compraste,
+  no algo mensual ni anual.
+- **Columna "Tasa anual":** ese mismo total acumulado, pero repartido en un promedio por año — así
+  podés compararlo directo contra algo como un CDT. **Importante: es un dato histórico, no una
+  promesa.** Te dice "así de rápido creció en promedio desde que la compraste", no "esto es lo que
+  vas a ganar el año que viene" — a diferencia de un CDT, acá nadie te lo garantiza. Si la posición
+  tiene menos de 30 días, dice "muy reciente" en vez de un número (anualizar unos pocos días da un
+  resultado sin sentido).
 
 ### 5.2 El gráfico
 
@@ -471,6 +480,17 @@ página de detalle):
 - La proyección de tendencia de corto plazo, si el símbolo tiene suficiente historia para calcularla
   (ver sección 9.2).
 - El crecimiento histórico real de largo plazo (1/3/5 años), si hay suficiente historia (sección 9.2).
+- **Fundamentales reales de la empresa** (2026-08-16) — si el símbolo es una acción individual
+  registrada en EE. UU. (no aplica a crypto ni a un ETF como conjunto): ingresos, ganancia neta,
+  deuda, caja y márgenes de los últimos años, sacados directo de lo que la empresa reporta a la SEC
+  (mismo organismo que ya usa Sambei para trades del Congreso e institucionales). Se busca la primera
+  vez que alguien pregunta por ese símbolo — no hace falta esperar un proceso aparte.
+- **Asset Score combinado** (2026-08-16, versión heurística v1) — un número único de 0 a 100 que
+  resume Calidad del negocio + Crecimiento + Valoración + Actividad de "smart money"
+  (congresistas/institucionales) en un solo puntaje comparable. Pensalo como una primera nota rápida,
+  no un veredicto final — todavía no está calibrado contra resultados históricos reales
+  (backtesting), así que el Advisor lo usa como un dato más a considerar, no como la única razón para
+  recomendar algo.
 
 **Si hacés una pregunta general** ("en qué invierto", "qué me conviene", sin mencionar un símbolo):
 - Tu portfolio completo, si tenés inversiones cargadas — con el peso % de cada posición (mismo dato
@@ -482,13 +502,18 @@ página de detalle):
   inversiones cargadas — no hace falta que aclares "dame las más rentables", el sistema ya prioriza
   así por defecto. Estos mismos candidatos también se pueden explorar visualmente, con gráfico, en el
   tab Watcher (sección 10.1) si tu cuenta tiene acceso.
-- **Una posición que ya pesa 30% o más de tu portfolio se excluye de esta lista de oportunidades** —
-  aunque tenga el mejor historial de todos, el Advisor no va a recibir la información necesaria para
-  sugerirte reforzarla (ver sección 9.3, "Freno de concentración").
+- **Una posición que ya pesa 30% o más de tu portfolio, o un sector completo que ya pesa 50% o más,
+  se excluye de esta lista de oportunidades** — aunque tenga el mejor historial de todos, el Advisor
+  no va a recibir la información necesaria para sugerirte reforzarla (ver sección 9.3, "Frenos de
+  concentración").
 - **Cada candidato nuevo que no tenés en tu portfolio viene con una ficha**, no solo el ticker:
   nombre real de la empresa/fondo, rubro (ej. "Restaurants, sector Consumer Cyclical"), su
-  crecimiento histórico real, quién lo compró recientemente, y por qué aparece en la lista — para
-  que nunca tengas que adivinar qué es un símbolo que no reconocés.
+  crecimiento histórico real, fundamentales y Asset Score si están disponibles (ver arriba), quién lo
+  compró recientemente, y por qué aparece en la lista — para que nunca tengas que adivinar qué es un
+  símbolo que no reconocés.
+- **Tu historial de aciertos, si ya tenés recomendaciones evaluadas** (sección 9.4): un resumen tipo
+  "de tus últimas recomendaciones seguidas, X de Y salieron bien" se suma al contexto para que el
+  Advisor tenga en cuenta tu track record real, no solo teoría.
 
 **En cualquiera de los dos casos:** tu perfil de riesgo (sección 2) se usa para adaptar la respuesta,
 y el Advisor **nunca te lo vuelve a preguntar** una vez que ya lo elegiste.
@@ -511,9 +536,15 @@ de las dos es una garantía — son señales con evidencia real detrás, no prom
 **Modo directivo — sí te puede decir qué comprar/vender, con montos concretos.** A diferencia de
 versiones anteriores de Sambei, hoy el Advisor puede terminar una respuesta con algo tan concreto
 como "vendé VWRA.UK completa, comprá $650 en NVDA". Siempre tiene que estar anclado a los datos
-reales del contexto (histórico, congresistas/institucionales, proyección) — nunca es una
-corazonada, y nunca te promete que algo es "seguro". La decisión de actuar (y cuándo) siempre es
+reales del contexto (histórico, congresistas/institucionales, proyección, fundamentales) — nunca es
+una corazonada, y nunca te promete que algo es "seguro". La decisión de actuar (y cuándo) siempre es
 tuya — el Advisor no ejecuta nada.
+
+**Formato de la respuesta (2026-08-16):** cuando la respuesta incluye una recomendación concreta, el
+Advisor tiene que organizarla bajo encabezados fijos — 🟢 **Comprar**, 🔴 **Vender**, 🟡 **Mantener** —
+en vez de mezclar todo en un párrafo largo. Cualquier explicación o análisis de fondo (por qué,
+trade-offs, contexto) va en viñetas, no en bloques de texto corrido — pedido explícito después de que
+las respuestas se sintieran "muy densas" de leer.
 
 **Por qué existe este modo, y hasta cuándo:** es una decisión explícita para este grupo chico de
 usuarios (hoy 3 personas) que lo pidieron así. **No es la filosofía final de Sambei** — si la app
@@ -521,11 +552,25 @@ se abre a más usuarios en el futuro, este modo se va a revisar antes de exponer
 (dar instrucciones concretas de compra/venta se acerca a asesoría financiera regulada).
 
 **Los frenos reales que sí existen, garantizados aunque el Advisor "se olvide":**
-- **Freno de concentración:** una posición que ya pesa 30% o más de tu portfolio queda excluida de
-  las sugerencias de compra — el Advisor ni siquiera recibe la información para argumentar a favor
-  de reforzarla más. Si se lo pedís directamente, tiene que explicarte el % real y ofrecerte
-  alternativas, no ceder sin más. Este es el freno que evita terminar con todo apostado a un solo
-  activo — si ese activo cae fuerte un día, no se lleva puesto todo tu portfolio.
+- **Freno de concentración por símbolo:** una posición que ya pesa 30% o más de tu portfolio queda
+  excluida de las sugerencias de compra — el Advisor ni siquiera recibe la información para
+  argumentar a favor de reforzarla más. Si se lo pedís directamente, tiene que explicarte el % real y
+  ofrecerte alternativas, no ceder sin más. Este es el freno que evita terminar con todo apostado a un
+  solo activo — si ese activo cae fuerte un día, no se lleva puesto todo tu portfolio.
+- **Freno de concentración por sector (2026-08-16):** el mismo freno, pero mirando el sector completo,
+  no solo el símbolo. Si ya tenés, por ejemplo, 50% o más del portfolio repartido entre varias
+  posiciones del sector "Semiconductors" (aunque cada una individualmente pese poco), un símbolo nuevo
+  del mismo sector también queda excluido de las sugerencias de compra. Esto tapa un agujero real que
+  tenía el freno por símbolo solo: vender tu ETF más diversificado para comprar una acción "nueva" que
+  en el fondo es del mismo rubro que ya tenés de sobra no es diversificar, es concentrar con otro
+  nombre — y antes el Advisor no lo veía. El sector se calcula sobre exposición real: si tenés un ETF
+  registrado en EE. UU. (ej. QQQ, VOO, VGT), Sambei consulta la composición oficial que ese fondo
+  reporta a la SEC (Form N-PORT — el mismo tipo de reporte obligatorio que ya usa para trades
+  institucionales) y suma la proporción de cada sector adentro del ETF a tu exposición real, en vez
+  de tratar el ETF como una sola posición genérica sin mirar qué contiene. **Límite conocido:** esto
+  todavía solo funciona para ETFs registrados en EE. UU. — un ETF domiciliado fuera (ej. europeo,
+  como EIMI/VWRA/VWCE) no tiene forma de resolverse todavía, y esa posición queda sin desglosar por
+  sector (sigue contando por su propio peso de símbolo, solo pierde el desglose interno).
 - **Límite de cantidad de posiciones** (si lo declaraste, sección 2): no te va a empujar a sumar un
   símbolo nuevo por encima de tu objetivo sin decirte qué vender antes para hacer lugar.
 - **Nombre y ficha de cada símbolo nuevo:** garantizado que aparezca, no depende de que el Advisor
@@ -545,8 +590,12 @@ compara automáticamente contra las últimas recomendaciones concretas que te di
 misma dirección — comprar/vender) — si coinciden, la marca sola como "seguida" y te avisa con un
 cartel chico arriba del chat del Dashboard: **"Sambei notó que compraste/vendiste X"**. Si fue una
 falsa alarma (compraste por otra razón, no por ese consejo), hay un link "no fue por eso" para
-corregirlo. Esto es la base de que, más adelante, el Advisor pueda aprender de si sus consejos
-salieron bien o mal con el tiempo (todavía no evalúa el resultado, solo lo registra — sección 11).
+corregirlo. 90 días después de que se marca como "seguida", esa recomendación queda lista para
+evaluarse contra el precio real (¿subió si dijo "comprar", bajó si dijo "vender"?) — el resultado se
+resume ("de tus últimas recomendaciones seguidas, X de Y salieron bien") y se le muestra al Advisor
+en conversaciones futuras, para que tenga en cuenta tu track record real (sección 9.1). **Falta un
+detalle operativo, no de diseño:** hoy esa evaluación no corre sola en el fondo todavía — sigue sin
+un disparador automático (cron), ver sección 11.
 
 ### 9.5 Tus conversaciones no se guardan para siempre
 
@@ -627,10 +676,14 @@ construidas todavía. Esta lista está sincronizada con la cola de trabajo real 
   para el plan completo. Lo que sí existe hoy (oportunidades por congresistas + crecimiento
   histórico + proyección de tendencia, sección 9.1) es la primera versión real y funcionando de esa
   misma idea, a mucha menor escala.
-- **El Advisor todavía no evalúa si sus propias recomendaciones salieron bien o mal.** Ya sabe qué
-  te recomendó y se da cuenta solo si le hiciste caso (sección 9.4), pero falta la parte de comparar
-  eso contra el precio real después de un tiempo y usar ese resultado para conversaciones futuras —
-  diseñado, sin implementar todavía.
+- **La evaluación de recomendaciones (¿salió bien o mal?) todavía no corre sola.** El mecanismo ya
+  existe — compara el precio real contra la recomendación 90 días después y arma un resumen de
+  aciertos que el Advisor sí usa en conversaciones futuras (sección 9.4) — pero falta el disparador
+  automático (un proceso que lo corra solo todos los días); hoy solo se ejecuta bajo demanda.
+- **Non-US ETFs (EIMI, VWRA, VWCE...) no tienen desglose de sector interno.** El freno de
+  concentración por sector (sección 9.3) solo puede mirar adentro de ETFs registrados en EE. UU. —
+  para el resto, la posición sigue contando por su propio peso de símbolo, sin saber qué sectores
+  contiene.
 
 ---
 

@@ -222,8 +222,30 @@ import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.compon
         value:            inv.currentValue,
         weightPercent:    total > 0 ? (inv.currentValue / total) * 100 : 0,
         netProfit:        inv.pnL,
-        netProfitPercent: inv.pnLPercent
+        netProfitPercent: inv.pnLPercent,
+        purchaseDate:     inv.purchaseDate,
+        annualizedReturnPercent: this.annualizedReturnPercent(inv.purchaseDate, inv.pnLPercent)
       })).sort((a, b) => b.netProfitPercent - a.netProfitPercent);
+    }
+
+    // Convierte la ganancia acumulada desde la compra en una tasa efectiva anual (mismo CAGR que ya
+    // usa el backend para el histórico de candidatos, ComputeHistoricalGrowthAsync) — pedido
+    // explícito de Daniel: "para entenderlo mejor, comparado contra algo como un CDT". Se calcula
+    // 100% en el frontend porque los tres datos que hacen falta (fecha de compra, P&L%) ya vienen en
+    // la respuesta del dashboard, no hace falta pedirle nada nuevo al backend.
+    // null si la posición tiene menos de 30 días — anualizar un puñado de días da un número absurdo
+    // (ej. +2% en 3 días "anualizado" sería +unos cientos de % / año), mismo criterio de cautela que
+    // ya usa el backend (actualYears < 0.5 se descarta en OpportunityPoolService).
+    private annualizedReturnPercent(purchaseDateIso: string, pnLPercent: number): number | null {
+      const purchaseDate = new Date(purchaseDateIso + (purchaseDateIso.includes('T') ? '' : 'T00:00:00'));
+      const daysHeld = (Date.now() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysHeld < 30) return null;
+
+      const years = daysHeld / 365.25;
+      const growthFactor = 1 + pnLPercent / 100;
+      if (growthFactor <= 0) return -100; // posición perdió el 100% o más (no debería pasar en la práctica, pero evita NaN de una raíz de negativo)
+
+      return (Math.pow(growthFactor, 1 / years) - 1) * 100;
     }
 
     // Series de la gráfica con datos reales
@@ -488,6 +510,14 @@ import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.compon
 
     formatPercent(value: number): string {
       return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+    }
+
+    // "ene 2024" — formato compacto para mostrar junto a la ganancia acumulada, así queda claro
+    // desde cuándo se está contando (pedido explícito de Daniel: "no sé desde cuándo se ve en la
+    // columna ganancia/pérdida" — la fecha ya estaba en los datos, solo no se mostraba).
+    formatPurchaseDateShort(isoDate: string): string {
+      const date = new Date(isoDate + (isoDate.includes('T') ? '' : 'T00:00:00'));
+      return date.toLocaleDateString('es-AR', { month: 'short', year: 'numeric' });
     }
 
     formatTradeDate(isoDate: string): string {

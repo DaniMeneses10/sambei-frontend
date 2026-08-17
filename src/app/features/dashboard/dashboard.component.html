@@ -336,6 +336,7 @@
                                       <th class="text-right pb-2">Valor</th>
                                       <th class="text-right pb-2">% Portfolio</th>
                                       <th class="text-right pb-2">Ganancia / Pérdida</th>
+                                      <th class="text-right pb-2" title="Tasa efectiva anual — la ganancia acumulada convertida a %/año, para comparar contra un CDT u otra inversión de renta fija">Tasa anual</th>
                                   </tr>
                               </thead>
                               <tbody>
@@ -372,6 +373,18 @@
                                               <div [style.color]="pos.netProfit >= 0 ? '#22c55e' : '#ef4444'" class="text-xs">
                                                   {{ formatUSD(pos.netProfit) }}
                                               </div>
+                                              <div class="text-slate-500 text-[10px]" title="Fecha de compra — todo lo de arriba es acumulado desde acá">
+                                                  desde {{ formatPurchaseDateShort(pos.purchaseDate) }}
+                                              </div>
+                                          </td>
+                                          <td class="py-3 text-right">
+                                              @if (pos.annualizedReturnPercent === null) {
+                                                  <span class="text-slate-500 text-xs" title="Menos de 30 días desde la compra — muy poco tiempo para anualizar sin distorsionar el número">muy reciente</span>
+                                              } @else {
+                                                  <span [style.color]="pos.annualizedReturnPercent >= 0 ? '#22c55e' : '#ef4444'" class="font-medium">
+                                                      {{ formatPercent(pos.annualizedReturnPercent) }}
+                                                  </span>
+                                              }
                                           </td>
                                           <td class="py-3 text-right">
                                               <button (click)="$event.stopPropagation(); confirmDelete(pos)"
@@ -411,6 +424,7 @@
                                       <div>
                                           <div class="text-slate-500">Compra</div>
                                           <div class="text-slate-300">{{ formatUSD(pos.openPrice) }}</div>
+                                          <div class="text-slate-600 text-[10px]">desde {{ formatPurchaseDateShort(pos.purchaseDate) }}</div>
                                       </div>
                                       <div>
                                           <div class="text-slate-500">Actual</div>
@@ -427,6 +441,16 @@
                                               {{ formatPercent(pos.weightPercent) }}
                                               @if (pos.weightPercent >= concentrationThresholdPct) { ⚠ }
                                           </div>
+                                      </div>
+                                      <div>
+                                          <div class="text-slate-500" title="Ganancia acumulada convertida a %/año, para comparar contra un CDT">Tasa anual</div>
+                                          @if (pos.annualizedReturnPercent === null) {
+                                              <div class="text-slate-500">muy reciente</div>
+                                          } @else {
+                                              <div [style.color]="pos.annualizedReturnPercent >= 0 ? '#22c55e' : '#ef4444'">
+                                                  {{ formatPercent(pos.annualizedReturnPercent) }}
+                                              </div>
+                                          }
                                       </div>
                                   </div>
                               </div>
