@@ -1,0 +1,247 @@
+<div class="bg-surface-800 rounded-2xl p-4">
+    <h2 class="text-white font-semibold mb-1 flex items-center gap-2">
+        <span>🏦</span> Pensión Voluntaria (Skandia)
+    </h2>
+    <p class="text-slate-500 text-xs mb-4">
+        Totalmente independiente del portfolio de ETFs/crypto. Sin API de precio de Skandia — el
+        "valor actual" es lo último que cargaste a mano desde tu estado de cuenta, no un dato en vivo.
+    </p>
+
+    @if (error()) {
+        <div class="bg-danger/10 border border-danger/30 text-danger text-sm rounded-lg p-3 mb-4">
+            {{ error() }}
+        </div>
+    }
+
+    @if (loading()) {
+        <p class="text-slate-500 text-sm">Cargando…</p>
+    } @else {
+
+        <!-- Totales -->
+        @if (dashboard(); as d) {
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <div class="border border-slate-700 rounded-xl p-3">
+                <p class="text-slate-500 text-xs mb-1">Total aportado</p>
+                <p class="text-white font-bold">{{ formatCop(d.totalContributedCop) }}</p>
+            </div>
+            <div class="border border-slate-700 rounded-xl p-3">
+                <p class="text-slate-500 text-xs mb-1">Valor actual</p>
+                <p class="text-white font-bold">{{ formatCop(d.totalEffectiveValueCop) }}</p>
+            </div>
+            <div class="border border-slate-700 rounded-xl p-3">
+                <p class="text-slate-500 text-xs mb-1">Ganancia/Pérdida</p>
+                <p class="font-bold" [style.color]="(d.totalGainLossCop ?? 0) >= 0 ? '#22c55e' : '#ef4444'">
+                    {{ formatCop(d.totalGainLossCop) }}
+                </p>
+            </div>
+            <div class="border border-slate-700 rounded-xl p-3">
+                <p class="text-slate-500 text-xs mb-1">% Ganancia/Pérdida</p>
+                <p class="font-bold" [style.color]="(d.totalGainLossPct ?? 0) >= 0 ? '#22c55e' : '#ef4444'">
+                    {{ formatPercent(d.totalGainLossPct) }}
+                </p>
+            </div>
+        </div>
+        }
+
+        <!-- Acciones -->
+        <div class="flex flex-wrap gap-2 mb-4">
+            <button (click)="showContributionForm.set(!showContributionForm()); showValuationForm.set(false)"
+                    class="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-500 text-white hover:bg-primary-600 transition-colors">
+                + Registrar aporte
+            </button>
+            <button (click)="showValuationForm.set(!showValuationForm()); showContributionForm.set(false)"
+                    class="px-3 py-1.5 rounded-lg text-sm font-medium border border-slate-700 text-slate-300 hover:text-white transition-colors">
+                + Actualizar valor
+            </button>
+            <button (click)="showCatalog.set(!showCatalog())"
+                    class="px-3 py-1.5 rounded-lg text-sm font-medium border border-slate-700 text-slate-300 hover:text-white transition-colors">
+                {{ showCatalog() ? 'Ocultar catálogo' : 'Ver catálogo completo (24)' }}
+            </button>
+        </div>
+
+        <!-- Form: registrar aporte -->
+        @if (showContributionForm()) {
+        <form [formGroup]="contributionForm" (ngSubmit)="submitContribution()"
+              class="border border-slate-700 rounded-xl p-3 mb-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+            <select formControlName="portfolioId" class="bg-surface-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white">
+                <option value="">Portafolio…</option>
+                @for (p of catalog(); track p.id) {
+                    <option [value]="p.id">{{ p.name }}</option>
+                }
+            </select>
+            <input type="number" formControlName="amountCop" placeholder="Monto COP"
+                   class="bg-surface-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white" />
+            <input type="date" formControlName="contributionDate"
+                   class="bg-surface-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white" />
+            <input type="text" formControlName="note" placeholder="Nota (opcional)"
+                   class="bg-surface-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white" />
+            <div class="md:col-span-4 flex gap-2">
+                <button type="submit" [disabled]="contributionForm.invalid || savingContribution()"
+                        class="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-500 text-white disabled:opacity-50">
+                    {{ savingContribution() ? 'Guardando…' : 'Guardar aporte' }}
+                </button>
+            </div>
+        </form>
+        }
+
+        <!-- Form: actualizar valor -->
+        @if (showValuationForm()) {
+        <form [formGroup]="valuationForm" (ngSubmit)="submitValuation()"
+              class="border border-slate-700 rounded-xl p-3 mb-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+            <select formControlName="portfolioId" class="bg-surface-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white">
+                <option value="">Portafolio…</option>
+                @for (p of catalog(); track p.id) {
+                    <option [value]="p.id">{{ p.name }}</option>
+                }
+            </select>
+            <input type="number" formControlName="valueCop" placeholder="Valor actual COP"
+                   class="bg-surface-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white" />
+            <input type="date" formControlName="asOfDate"
+                   class="bg-surface-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white" />
+            <div class="flex gap-2">
+                <button type="submit" [disabled]="valuationForm.invalid || savingValuation()"
+                        class="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-500 text-white disabled:opacity-50">
+                    {{ savingValuation() ? 'Guardando…' : 'Guardar valor' }}
+                </button>
+            </div>
+        </form>
+        }
+
+        <!-- Posiciones actuales -->
+        @if (dashboard(); as d) {
+            @if (d.items.length === 0) {
+                <p class="text-slate-500 text-sm mb-6">Todavía no registraste ningún aporte.</p>
+            } @else {
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-slate-500 text-xs text-left">
+                            <th class="py-2 pr-2">Portafolio</th>
+                            <th class="py-2 pr-2">Riesgo</th>
+                            <th class="py-2 pr-2 text-right">Aportado</th>
+                            <th class="py-2 pr-2 text-right">Valor actual</th>
+                            <th class="py-2 pr-2 text-right">Peso</th>
+                            <th class="py-2 pr-2 text-right">Objetivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (item of d.items; track item.portfolioId) {
+                        <tr class="border-t border-slate-800">
+                            <td class="py-2 pr-2 text-white">{{ item.name }}</td>
+                            <td class="py-2 pr-2 text-slate-400">{{ item.riskProfile }}</td>
+                            <td class="py-2 pr-2 text-right text-slate-300">{{ formatCop(item.totalContributedCop) }}</td>
+                            <td class="py-2 pr-2 text-right text-slate-300">
+                                {{ item.hasValuation ? formatCop(item.latestValuationCop) : formatCop(item.effectiveValueCop) + ' (sin actualizar)' }}
+                            </td>
+                            <td class="py-2 pr-2 text-right text-slate-300">{{ item.weightPct.toFixed(1) }}%</td>
+                            <td class="py-2 pr-2 text-right text-slate-500">{{ item.targetPct !== null ? item.targetPct + '%' : '—' }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
+        }
+
+        <!-- Plan de asignación -->
+        <div class="border border-slate-700 rounded-xl p-3 mb-6">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-white font-semibold text-sm">Plan de asignación (% objetivo)</h3>
+                <button (click)="showPlanEditor.set(!showPlanEditor())" class="text-primary-400 text-xs hover:underline">
+                    {{ showPlanEditor() ? 'Cerrar' : 'Editar plan' }}
+                </button>
+            </div>
+
+            @if (showPlanEditor()) {
+                @for (entry of planEntries(); track entry.portfolioId) {
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-slate-300 text-sm flex-1">{{ portfolioName(entry.portfolioId) }}</span>
+                    <input type="number" [value]="entry.targetPct"
+                           (input)="updateTarget(entry.portfolioId, $any($event.target).value)"
+                           class="w-20 bg-surface-900 border border-slate-700 rounded-lg px-2 py-1 text-sm text-white text-right" />
+                    <span class="text-slate-500 text-xs">%</span>
+                    <button (click)="removeFromPlan(entry.portfolioId)" class="text-slate-500 hover:text-danger text-sm px-1">✕</button>
+                </div>
+                }
+
+                <div class="flex items-center gap-2 mb-3">
+                    <select [value]="planAddPortfolioId()" (change)="planAddPortfolioId.set($any($event.target).value)"
+                            class="bg-surface-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white flex-1">
+                        <option value="">+ Agregar portafolio al plan…</option>
+                        @for (p of catalogNotInPlan(); track p.id) {
+                            <option [value]="p.id">{{ p.name }}</option>
+                        }
+                    </select>
+                    <button (click)="addPortfolioToPlan()" class="px-2 py-1.5 rounded-lg text-sm border border-slate-700 text-slate-300">
+                        Agregar
+                    </button>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <span class="text-xs" [style.color]="planTotalPct() === 100 ? '#22c55e' : '#f59e0b'">
+                        Suma actual: {{ planTotalPct().toFixed(1) }}% {{ planTotalPct() === 100 ? '✓' : '(debería sumar 100%)' }}
+                    </span>
+                    <button (click)="savePlan()" [disabled]="savingPlan()"
+                            class="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-500 text-white disabled:opacity-50">
+                        {{ savingPlan() ? 'Guardando…' : planSaved() ? 'Guardado ✓' : 'Guardar plan' }}
+                    </button>
+                </div>
+            } @else {
+                <p class="text-slate-500 text-xs">
+                    {{ planEntries().length > 0 ? planEntries().length + ' portafolio(s) en el plan.' : 'Sin plan definido todavía.' }}
+                </p>
+            }
+        </div>
+
+        <!-- Sugerencia del Advisor -->
+        <div class="border border-slate-700 rounded-xl p-3 mb-6">
+            <h3 class="text-white font-semibold text-sm mb-2">🤖 Sugerencia del Advisor</h3>
+            <p class="text-slate-500 text-xs mb-3">
+                Referencia educativa basada en los datos reales del catálogo (comisión, riesgo, liquidez) — no es asesoría financiera regulada.
+            </p>
+
+            <form [formGroup]="suggestForm" (ngSubmit)="askSuggestion()" class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+                <input type="number" formControlName="monthlyContributionCop" placeholder="Aporte mensual COP"
+                       class="bg-surface-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white" />
+                <input type="number" formControlName="horizonYears" placeholder="Horizonte (años)"
+                       class="bg-surface-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white" />
+                <select formControlName="riskProfileHint" class="bg-surface-900 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white">
+                    <option value="Conservador">Conservador</option>
+                    <option value="Moderado">Moderado</option>
+                    <option value="Agresivo">Agresivo</option>
+                </select>
+                <button type="submit" [disabled]="suggestForm.invalid || suggesting()"
+                        class="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-500 text-white disabled:opacity-50">
+                    {{ suggesting() ? 'Pensando…' : 'Pedir sugerencia' }}
+                </button>
+            </form>
+
+            @if (suggestError()) {
+                <p class="text-danger text-sm">{{ suggestError() }}</p>
+            }
+            @if (suggestion()) {
+                <div class="prose prose-invert prose-sm max-w-none border-t border-slate-800 pt-3" [innerHTML]="renderMarkdown(suggestion())"></div>
+            }
+        </div>
+
+        <!-- Catálogo completo -->
+        @if (showCatalog()) {
+        <div class="border border-slate-700 rounded-xl p-3">
+            <h3 class="text-white font-semibold text-sm mb-3">Catálogo completo (24 portafolios reales de Skandia)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                @for (p of catalog(); track p.id) {
+                <div class="border border-slate-800 rounded-lg p-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-white font-semibold text-sm">{{ p.name }}</span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-primary-500/10 text-primary-400">{{ p.riskProfile }}</span>
+                    </div>
+                    <p class="text-slate-500 text-xs mb-1">{{ p.classification }} · {{ p.region }} · Liquidez {{ p.liquidityType }}</p>
+                    <p class="text-slate-400 text-xs mb-1">Comisión: {{ p.feeMinPct }}–{{ p.feeMaxPct }}% anual</p>
+                    <p class="text-slate-500 text-xs">{{ p.notes }}</p>
+                </div>
+                }
+            </div>
+        </div>
+        }
+    }
+</div>

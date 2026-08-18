@@ -20,10 +20,11 @@ import { AdvisorAlertsComponent } from "../ai-advisor/advisor-alerts.component";
 import { RiskProfileModalComponent, RiskProfileSaveEvent } from "./risk-profile-modal/risk-profile-modal.component";
 import { WatcherTabComponent } from "./watcher-tab/watcher-tab.component";
 import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.component";
+import { PensionTabComponent } from "./pension-tab/pension-tab.component";
 
   @Component({
     selector: 'app-dashboard',
-    imports: [NgApexchartsModule, NgClass, RouterLink, AddInvestmentComponent, AiAdvisorChatComponent, AdvisorAlertsComponent, RiskProfileModalComponent, WatcherTabComponent, AdminUsersTabComponent],
+    imports: [NgApexchartsModule, NgClass, RouterLink, AddInvestmentComponent, AiAdvisorChatComponent, AdvisorAlertsComponent, RiskProfileModalComponent, WatcherTabComponent, AdminUsersTabComponent, PensionTabComponent],
     templateUrl: './dashboard.component.html',
   })
   export class DashboardComponent {
@@ -77,7 +78,7 @@ import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.compon
 
     // Tabs del dashboard (2026-08-07) — Watcher (Admin/Plus) y Usuarios (solo Admin). Portfolio
     // es el contenido de siempre, sin cambios funcionales.
-    activeTab = signal<'portfolio' | 'watcher' | 'admin'>('portfolio');
+    activeTab = signal<'portfolio' | 'watcher' | 'admin' | 'pension'>('portfolio');
     readonly riskProfileOptions = RISK_PROFILE_OPTIONS;
 
     // Dropdown de usuario (reemplaza el botón "Salir" suelto) — mismo patrón simple que el dropdown
