@@ -567,12 +567,22 @@
                 (click)="$event.stopPropagation()">
 
               <h3 class="text-white font-bold text-lg mb-1">¿Eliminar inversión?</h3>
-              <p class="text-slate-400 text-sm mb-6">
+              <p class="text-slate-400 text-sm mb-4">
                 Vas a eliminar
                 <span class="text-white font-semibold">{{ investmentToDelete()!.symbol }}</span>
                 — {{ investmentToDelete()!.name }}.
-                Esta acción no se puede deshacer.
+                No se puede deshacer desde la app.
               </p>
+
+              <label class="block text-slate-400 text-xs mb-1">Motivo (opcional)</label>
+              <textarea
+                [value]="deleteReason()"
+                (input)="deleteReason.set($any($event.target).value)"
+                rows="2"
+                placeholder="Ej: reasigné el capital, cambié de estrategia..."
+                class="w-full mb-6 bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm text-white
+                       placeholder:text-slate-500 focus:outline-none focus:border-slate-500 resize-none">
+              </textarea>
 
               <div class="flex gap-3">
                 <button (click)="onDeleteConfirmed()"

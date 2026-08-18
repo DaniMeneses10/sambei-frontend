@@ -44,6 +44,8 @@ import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.compon
     showAddForm       = signal(false);
     // null = modal cerrado | objeto = modal de confirmación abierto para esa inversión
     investmentToDelete = signal<{ id: string; name: string; symbol: string } | null>(null);
+    // Motivo opcional de venta — viaja al backend en investSvc.delete() (soft delete, ver Investment.MarkAsSold)
+    deleteReason = signal('');
 
     // Filtros de la gráfica
     activeAssets      = signal(new Set<string>());
@@ -542,20 +544,23 @@ import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.compon
 
     confirmDelete(pos: { id: string; name: string; symbol: string }): void {
       this.investmentToDelete.set(pos);
+      this.deleteReason.set('');
     }
 
     onDeleteConfirmed(): void {
       const target = this.investmentToDelete();
       if (!target) return;
 
-      this.investSvc.delete(target.id).subscribe({
+      this.investSvc.delete(target.id, this.deleteReason()).subscribe({
         next: () => {
           this.investmentToDelete.set(null);
+          this.deleteReason.set('');
           this.reloadDashboard();
         },
         error: (err) => {
           console.error('Error al eliminar', err);
           this.investmentToDelete.set(null);
+          this.deleteReason.set('');
         }
       });
     }

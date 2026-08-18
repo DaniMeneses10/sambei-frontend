@@ -16,8 +16,13 @@ export class InvestmentService {
         return this.http.put(`${this.baseUrl}/${id}`, request);
     }
 
-    delete(id: string): Observable<void> {
-        return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    // reason: motivo opcional de la venta — el Advisor lo usa después como contexto histórico
+    // (ver BuildAdvisorContextService, backend). Por query string, no por body: DELETE-con-body
+    // es poco confiable (algunos proxies lo descartan) y esto es solo un texto corto.
+    delete(id: string, reason?: string): Observable<void> {
+        const trimmed = reason?.trim();
+        const options = trimmed ? { params: { reason: trimmed } } : {};
+        return this.http.delete<void>(`${this.baseUrl}/${id}`, options);
     }
 
     getDetail(symbol: string): Observable<InvestmentDetailResponse> {
