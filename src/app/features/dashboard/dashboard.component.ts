@@ -76,6 +76,19 @@ import { PensionTabComponent } from "./pension-tab/pension-tab.component";
     targetPositionCount = signal<number | null>(null); // cantidad máxima de posiciones (opcional, 2026-08-15)
     showRiskProfileModal = signal(false);
 
+    // Recordatorio trimestral (2026-08-20, pedido explícito de Daniel: "cada 3 meses me gustaría que
+    // lance una alerta"). Sin push/SignalR todavía (F9 sigue sin implementar) esto es un aviso pull:
+    // se calcula cada vez que carga el dashboard, no llega solo. null = nunca hizo una revisión, se
+    // trata igual que "vencida" (sin período de gracia para una cuenta nueva).
+    private readonly reviewIntervalDays = 90;
+    lastPortfolioReviewAt = signal<string | null>(null);
+    portfolioReviewDue = computed(() => {
+      const last = this.lastPortfolioReviewAt();
+      if (last === null) return true;
+      const daysSince = (Date.now() - new Date(last).getTime()) / (1000 * 60 * 60 * 24);
+      return daysSince >= this.reviewIntervalDays;
+    });
+
     // Tabs del dashboard (2026-08-07) — Watcher (Admin/Plus) y Usuarios (solo Admin). Portfolio
     // es el contenido de siempre, sin cambios funcionales.
     activeTab = signal<'portfolio' | 'watcher' | 'admin' | 'pension'>('portfolio');
@@ -173,6 +186,7 @@ import { PensionTabComponent } from "./pension-tab/pension-tab.component";
           this.riskProfile.set(res.riskProfile);
           this.targetReturnPct.set(res.targetReturnPct);
           this.targetPositionCount.set(res.targetPositionCount);
+          this.lastPortfolioReviewAt.set(res.lastPortfolioReviewAt);
           if (res.riskProfile === null) this.showRiskProfileModal.set(true);
         },
         error: () => {}
@@ -197,6 +211,23 @@ import { PensionTabComponent } from "./pension-tab/pension-tab.component";
           this.showRiskProfileModal.set(false);
         },
         error: () => {} // el modal se queda abierto, el usuario puede reintentar
+      });
+    }
+
+    // "hace 4 meses" / "nunca" — texto del banner de revisión trimestral.
+    lastPortfolioReviewLabel(): string {
+      const last = this.lastPortfolioReviewAt();
+      if (last === null) return 'nunca hiciste una';
+      const days = Math.floor((Date.now() - new Date(last).getTime()) / (1000 * 60 * 60 * 24));
+      if (days < 30) return `hace ${days} día${days === 1 ? '' : 's'}`;
+      const months = Math.floor(days / 30);
+      return `hace ${months} mes${months === 1 ? '' : 'es'}`;
+    }
+
+    markPortfolioReviewed(): void {
+      this.profileSvc.markPortfolioReviewed().subscribe({
+        next: () => this.lastPortfolioReviewAt.set(new Date().toISOString()),
+        error: () => {} // el banner se queda visible, el usuario puede reintentar
       });
     }
 

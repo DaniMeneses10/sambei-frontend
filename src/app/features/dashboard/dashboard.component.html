@@ -144,6 +144,30 @@
 
           </div>
 
+          <!-- Recordatorio trimestral (2026-08-20, pedido explícito de Daniel: "cada 3 meses me
+               gustaría que lance una alerta y me pueda decir, oye revisemos el portafolio"). Aviso
+               pull, no una notificación real — sin push/SignalR todavía (F9 sigue sin implementar),
+               se calcula cada vez que carga el dashboard. Solo se muestra con perfil ya elegido, para
+               no competir con el modal de elegir perfil en la primera visita. -->
+          @if (riskProfile() !== null && portfolioReviewDue()) {
+          <div class="mb-6 border border-amber-500/30 bg-amber-500/10 rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <span class="text-2xl">🗓️</span>
+              <div class="flex-1">
+                  <p class="text-amber-400 text-sm font-semibold">Toca revisión trimestral del portafolio</p>
+                  <p class="text-slate-400 text-xs mt-0.5">
+                      Última revisión a fondo: {{ lastPortfolioReviewLabel() }}. Pedile al Advisor un análisis
+                      completo — hay oportunidades nuevas de varios sectores que todavía no viste.
+                  </p>
+              </div>
+              <button
+                  (click)="markPortfolioReviewed()"
+                  class="text-xs text-amber-400 hover:text-amber-300 border border-amber-500/30
+                         hover:border-amber-500 rounded-xl px-3 py-1.5 transition-all whitespace-nowrap">
+                  Ya la hice
+              </button>
+          </div>
+          }
+
           <!-- Grid principal -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 

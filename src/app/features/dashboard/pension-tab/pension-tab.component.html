@@ -220,7 +220,12 @@
                 <p class="text-danger text-sm">{{ suggestError() }}</p>
             }
             @if (suggestion()) {
-                <div class="prose prose-invert prose-sm max-w-none border-t border-slate-800 pt-3" [innerHTML]="renderMarkdown(suggestion())"></div>
+                <div class="prose prose-invert max-w-none text-xs border-t border-slate-800 pt-3
+                            prose-headings:text-slate-100 prose-headings:font-semibold
+                            prose-h1:text-sm prose-h2:text-sm prose-h3:text-xs prose-h4:text-xs
+                            prose-p:my-1.5 prose-ul:my-2 prose-ol:my-2 prose-li:my-1.5
+                            prose-strong:text-white prose-strong:font-semibold"
+                     [innerHTML]="renderMarkdown(suggestion())"></div>
             }
         </div>
 
