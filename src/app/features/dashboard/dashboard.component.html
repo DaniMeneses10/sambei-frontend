@@ -361,6 +361,7 @@
                               <thead>
                                   <tr class="text-slate-500 text-xs border-b border-slate-700">
                                       <th class="text-left pb-2">ETF</th>
+                                      <th class="text-left pb-2">Categoría</th>
                                       <th class="text-left pb-2">Broker</th>
                                       <th class="text-right pb-2">Precio compra</th>
                                       <th class="text-right pb-2">Precio actual</th>
@@ -383,6 +384,13 @@
                                                       <div class="text-slate-500 text-xs">{{ pos.name }}</div>
                                                   </div>
                                               </div>
+                                          </td>
+                                          <td class="py-3">
+                                              @if (categoryFor(pos.symbol); as cat) {
+                                                  <span class="text-[11px] px-2 py-0.5 rounded-full bg-primary-500/10 text-primary-400 whitespace-nowrap">{{ cat }}</span>
+                                              } @else {
+                                                  <span class="text-slate-600 text-xs">—</span>
+                                              }
                                           </td>
                                           <td class="py-3 text-slate-400">{{ pos.broker }}</td>
                                           <td class="py-3 text-right text-slate-400">{{ formatUSD(pos.openPrice) }}</td>
@@ -441,6 +449,9 @@
                                           <div class="w-2 h-2 rounded-full" [style.background-color]="getColor(pos.symbol)"></div>
                                           <span class="text-white font-semibold">{{ pos.symbol }}</span>
                                           <span class="text-slate-500 text-xs">{{ pos.broker }}</span>
+                                          @if (categoryFor(pos.symbol); as cat) {
+                                              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-primary-500/10 text-primary-400">{{ cat }}</span>
+                                          }
                                       </div>
                                       <div class="flex items-center gap-2">
                                           <span [style.color]="pos.netProfit >= 0 ? '#22c55e' : '#ef4444'" class="font-bold">

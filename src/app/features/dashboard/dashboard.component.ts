@@ -11,6 +11,7 @@ import { CongressScoreService } from "../../core/services/congress-score.service
 import { DashboardService } from "../../core/services/dashboard.service";
 import { InvestmentService } from "../../core/services/investment.service";
 import { NewsService } from "../../core/services/news.service";
+import { PortfolioCategoryService } from "../../core/services/portfolio-category.service";
 import { UserProfileService } from "../../core/services/user-profile.service";
 import { CongressionalTrade, DashboardResponse, InstitutionalMove, PriceHistoryPoint } from "./dashboard.models";
 import { buildAssetColorMap, institutionDisplayName, PERIODS } from "./mock-portfolio.data";
@@ -33,6 +34,7 @@ import { PensionTabComponent } from "./pension-tab/pension-tab.component";
     private readonly dashboardSvc = inject(DashboardService);
     private readonly investSvc    = inject(InvestmentService);
     private readonly newsSvc      = inject(NewsService);
+    private readonly categorySvc  = inject(PortfolioCategoryService);
     private readonly congressScoreSvc = inject(CongressScoreService);
     private readonly profileSvc   = inject(UserProfileService);
     private readonly router       = inject(Router);
@@ -43,6 +45,26 @@ import { PensionTabComponent } from "./pension-tab/pension-tab.component";
     allNews = signal<NewsItem[]>([]); // Noticias de todos los activos del portfolio
     
     dashboardData = signal<DashboardResponse | null>(null);// Datos reales del backend
+
+    // Categoría por posición (F11 Fase 2, 2026-09-04, pedido explícito de Daniel: "que la columna
+    // categoría se vea en mis posiciones"). Se pide aparte del dashboard principal (endpoint propio,
+    // ver PortfolioCategoryService en el backend) — clasificar cada símbolo (y, si es un ETF,
+    // resolver la categoría dominante por sus holdings reales) es más lento que el resto del
+    // dashboard, así que no bloquea la carga inicial: arranca vacío y se completa solo cuando llega.
+    positionCategories = signal<Record<string, string | null>>({});
+
+    categoryFor(symbol: string): string | null {
+        return this.positionCategories()[symbol] ?? null;
+    }
+
+    private loadCategories(): void {
+        this.categorySvc.getPositionCategories().subscribe({
+            next: (data) => {
+                this.positionCategories.set(Object.fromEntries(data.map(c => [c.symbol, c.category])));
+            },
+            error: () => { /* best-effort — sin categorías, el resto del dashboard sigue funcionando igual */ },
+        });
+    }
     showAddForm       = signal(false);
     // null = modal cerrado | objeto = modal de confirmación abierto para esa inversión
     investmentToDelete = signal<{ id: string; name: string; symbol: string } | null>(null);
@@ -167,6 +189,7 @@ import { PensionTabComponent } from "./pension-tab/pension-tab.component";
           this.activeInstitutions.set(new Set());
           this.loading.set(false);
           this.loadNews(data.investments.map(i => i.symbol));
+          this.loadCategories();
         },
         error: err => {
           this.error.set('Error al cargar el dashboard. Intentá de nuevo.');
@@ -571,8 +594,10 @@ import { PensionTabComponent } from "./pension-tab/pension-tab.component";
       window.location.reload();
     }
 
+    // Pedido explícito de Daniel (2026-09-04): "quiero que cuando de click se abra en nueva
+    // ventana, no sobre la misma" — antes navegaba en la misma pestaña, perdiendo el dashboard.
     navigateToDetail(symbol: string): void {
-      this.router.navigate(['/portfolio', symbol]);
+      window.open(`/portfolio/${symbol}`, '_blank');
     }
 
     confirmDelete(pos: { id: string; name: string; symbol: string }): void {
@@ -611,6 +636,7 @@ import { PensionTabComponent } from "./pension-tab/pension-tab.component";
           this.activeInstitutions.set(new Set());
           this.loading.set(false);
           this.loadNews(data.investments.map(i => i.symbol));
+          this.loadCategories();
         },
         error: () => {
           this.error.set('Error al recargar el dashboard.');

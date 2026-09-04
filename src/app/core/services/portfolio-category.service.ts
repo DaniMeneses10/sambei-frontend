@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { Observable } from "rxjs";
-import { PortfolioCategoryGap, PortfolioCategoryTargetRequest } from "../models/portfolio-category.models";
+import { PortfolioCategoryGap, PortfolioCategoryTargetRequest, PositionCategory } from "../models/portfolio-category.models";
 
 @Injectable({ providedIn: 'root' })
 export class PortfolioCategoryService {
@@ -18,5 +18,9 @@ export class PortfolioCategoryService {
 
     setTargets(targets: PortfolioCategoryTargetRequest[]): Observable<void> {
         return this.http.put<void>(`${this.baseUrl}/targets`, { targets });
+    }
+
+    getPositionCategories(): Observable<PositionCategory[]> {
+        return this.http.get<PositionCategory[]>(`${this.baseUrl}/positions`);
     }
 }

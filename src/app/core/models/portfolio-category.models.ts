@@ -12,3 +12,14 @@ export interface PortfolioCategoryTargetRequest {
     category: string;
     targetPct: number;
 }
+
+export interface PositionCategory {
+    symbol: string;
+    category: string | null;
+}
+
+export interface EtfHoldingSummary {
+    symbol: string;
+    name: string;
+    weightPct: number;
+}

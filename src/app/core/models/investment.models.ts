@@ -1,6 +1,7 @@
   import { AssetType } from "./asset-type.enum";
   import { CongressionalTrade, InstitutionalMove, PriceHistoryPoint } from '../../features/dashboard/dashboard.models';
   import { NewsItem } from './news.models';
+  import { EtfHoldingSummary } from './portfolio-category.models';
 
 
 export interface CreateInvestmentRequest {
@@ -47,4 +48,6 @@ export interface InvestmentDetailResponse {
     purchases:    PurchaseEvent[];
     congressionalTrades: CongressionalTrade[];
     institutionalMoves: InstitutionalMove[];
+    category: string | null;             // F11 Fase 2 (2026-09-04) — null = sin categoría mapeable
+    topHoldings: EtfHoldingSummary[];     // vacío si no es un ETF, o sin holdings fetcheados
 }
