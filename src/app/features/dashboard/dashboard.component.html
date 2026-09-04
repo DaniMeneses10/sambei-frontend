@@ -498,6 +498,12 @@
               </div>
 
           </div>
+
+          <!-- Categorías: objetivo vs. lo que tenés (F11 Fase 2, 2026-09-04) -->
+          @if (positions.length > 0) {
+              <app-category-targets></app-category-targets>
+          }
+
           <!-- Sección de noticias -->
           @if (allNews().length > 0) {
           <div class="mt-6 bg-surface-800 rounded-2xl p-4">

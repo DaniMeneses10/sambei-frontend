@@ -1,0 +1,80 @@
+<div class="bg-surface-800 rounded-2xl p-4 mt-6">
+    <div class="flex items-center justify-between mb-1">
+        <h2 class="text-white font-semibold flex items-center gap-2">
+            <span>🎯</span> Categorías — objetivo vs. lo que tenés
+        </h2>
+        @if (!editing() && !loading()) {
+            <button (click)="editing.set(true)" class="text-primary-400 hover:text-primary-300 text-xs font-semibold">
+                Editar objetivos
+            </button>
+        }
+    </div>
+    <p class="text-slate-500 text-xs mb-4">
+        % objetivo por categoría vs. lo que REALMENTE tenés (contando lo que traen los ETFs por
+        dentro). El Gap positivo significa que te falta esa categoría — el AI Advisor usa este mismo
+        plan cuando le preguntás dónde conviene el próximo aporte. Solo estas 9 categorías por ahora —
+        las que se pueden calcular sin ambigüedad con datos reales.
+    </p>
+
+    @if (loading()) {
+        <p class="text-slate-500 text-sm">Cargando…</p>
+    } @else if (error()) {
+        <p class="text-danger text-sm">{{ error() }}</p>
+    } @else {
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-slate-500 text-xs text-left">
+                        <th class="pb-2 font-medium">Categoría</th>
+                        <th class="pb-2 font-medium text-right">Objetivo</th>
+                        <th class="pb-2 font-medium text-right">Tenés</th>
+                        <th class="pb-2 font-medium text-right">Gap</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (g of gaps(); track g.category) {
+                        <tr class="border-t border-slate-700/60">
+                            <td class="py-2 text-slate-200">{{ g.category }}</td>
+                            <td class="py-2 text-right">
+                                @if (editing()) {
+                                    <input
+                                        type="number" min="0" max="100" step="0.5"
+                                        [value]="editedTargets()[g.category]"
+                                        (change)="updateTarget(g.category, $any($event.target).value)"
+                                        class="w-16 bg-surface-900 border border-slate-700 rounded-lg px-2 py-1 text-right text-white text-xs
+                                               focus:outline-none focus:border-primary-500" />
+                                    <span class="text-slate-500 text-xs">%</span>
+                                } @else {
+                                    <span class="text-slate-300">{{ g.targetPct.toFixed(1) }}%</span>
+                                }
+                            </td>
+                            <td class="py-2 text-right text-slate-300">{{ g.currentPct.toFixed(1) }}%</td>
+                            <td class="py-2 text-right font-semibold"
+                                [style.color]="g.gapPct > 0 ? '#22c55e' : (g.gapPct < 0 ? '#ef4444' : '#64748b')">
+                                {{ formatSigned(g.gapPct) }}
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (editing()) {
+            <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-700/60">
+                <span class="text-slate-500 text-xs">Suma de objetivos: {{ totalTarget().toFixed(1) }}%</span>
+                <div class="flex gap-2">
+                    <button (click)="editing.set(false)" [disabled]="saving()"
+                            class="text-slate-400 hover:text-slate-200 text-xs font-semibold px-3 py-1.5">
+                        Cancelar
+                    </button>
+                    <button (click)="save()" [disabled]="saving()"
+                            class="bg-primary-500 hover:bg-primary-600 disabled:opacity-40 text-white text-xs font-semibold rounded-xl px-4 py-1.5">
+                        {{ saving() ? 'Guardando…' : 'Guardar' }}
+                    </button>
+                </div>
+            </div>
+        } @else if (saved()) {
+            <p class="text-emerald-400 text-xs mt-3">✓ Plan guardado.</p>
+        }
+    }
+</div>

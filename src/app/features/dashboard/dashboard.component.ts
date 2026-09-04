@@ -19,12 +19,13 @@ import { AiAdvisorChatComponent } from "../ai-advisor/ai-advisor-chat.component"
 import { AdvisorAlertsComponent } from "../ai-advisor/advisor-alerts.component";
 import { RiskProfileModalComponent, RiskProfileSaveEvent } from "./risk-profile-modal/risk-profile-modal.component";
 import { WatcherTabComponent } from "./watcher-tab/watcher-tab.component";
+import { CategoryTargetsComponent } from "./category-targets/category-targets.component";
 import { AdminUsersTabComponent } from "./admin-users-tab/admin-users-tab.component";
 import { PensionTabComponent } from "./pension-tab/pension-tab.component";
 
   @Component({
     selector: 'app-dashboard',
-    imports: [NgApexchartsModule, NgClass, RouterLink, AddInvestmentComponent, AiAdvisorChatComponent, AdvisorAlertsComponent, RiskProfileModalComponent, WatcherTabComponent, AdminUsersTabComponent, PensionTabComponent],
+    imports: [NgApexchartsModule, NgClass, RouterLink, AddInvestmentComponent, AiAdvisorChatComponent, AdvisorAlertsComponent, RiskProfileModalComponent, WatcherTabComponent, AdminUsersTabComponent, PensionTabComponent, CategoryTargetsComponent],
     templateUrl: './dashboard.component.html',
   })
   export class DashboardComponent {
