@@ -43,15 +43,27 @@
                              árbol de `prose` (headers, listas, código) escala en `em` relativo a
                              ESE base — mismo tamaño que el resto del chat, sin el salto grande de
                              los headers "## 🟢 Comprar" que generá el modo directivo. Los `li` pasan
-                             de `my-0` (pegados) a `my-1.5` — pedido explícito: "agrega un espacio". -->
+                             de `my-0` (pegados) a `my-1.5` — pedido explícito: "agrega un espacio".
+
+                             Rediseño (2026-09-04, pedido explícito de Daniel: "parece una máquina de
+                             escribir de los años 50, dale diseño") — antes de esto era texto gris
+                             uniforme sin ningún acento visual, headers incluidos (solo negrita chica,
+                             sin diferenciarse del resto). Ahora los headers "## 🟢 Comprar/🔴 Vender/
+                             🟡 Mantener" del modo directivo se ven como una tarjeta propia (fondo +
+                             borde + barra de color a la izquierda), el texto en negrita usa el color
+                             primario en vez de blanco plano (le da un acento de color sin competir con
+                             los emojis de semáforo), y los párrafos/listas tienen más aire para leer. -->
                         <div class="text-slate-200 prose prose-invert max-w-none overflow-x-auto text-xs
                                     prose-headings:text-slate-100 prose-headings:font-semibold
                                     prose-h1:text-sm prose-h2:text-sm prose-h3:text-xs prose-h4:text-xs
-                                    prose-headings:mt-3 prose-headings:mb-1.5 prose-headings:first:mt-0
-                                    prose-p:my-1.5 prose-ul:my-2 prose-ol:my-2 prose-li:my-1.5
-                                    prose-strong:text-white prose-strong:font-semibold
+                                    prose-headings:mt-4 prose-headings:mb-2 prose-headings:first:mt-0
+                                    prose-h2:bg-surface-900/70 prose-h2:border prose-h2:border-slate-700/80
+                                    prose-h2:border-l-4 prose-h2:border-l-primary-500 prose-h2:rounded-r-lg
+                                    prose-h2:px-3 prose-h2:py-2
+                                    prose-p:my-2 prose-p:leading-relaxed prose-ul:my-2 prose-ol:my-2 prose-li:my-1.5
+                                    prose-strong:text-primary-400 prose-strong:font-semibold
                                     prose-table:block prose-table:overflow-x-auto
-                                    prose-th:text-slate-300 prose-hr:my-3
+                                    prose-th:text-slate-300 prose-hr:my-4 prose-hr:border-slate-700
                                     prose-code:text-slate-200 prose-code:bg-slate-900/60 prose-code:rounded
                                     prose-code:px-1 prose-code:py-0.5 prose-code:text-[11px]
                                     prose-code:before:content-none prose-code:after:content-none"
